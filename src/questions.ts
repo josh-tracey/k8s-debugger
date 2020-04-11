@@ -209,10 +209,19 @@ const logsConsole = async (answer: Selection) => {
   mainMenu()
 }
 
+const deleteResourceResponse = async (resourceType: ResourceType) => {
+  console.log(
+    `\n###########################\nDelete ${resourceType}\n###########################`
+  )
+  selector(resourceType, 'checkbox').then(async (answer: Selection) => {
+    await deleteResources(resourceType, answer.selection as string[])
+  })
+}
+
 export const mainMenu = async () => {
   rootMenu().then(async (answer: Selection) => {
+    console.clear()
     if (answer.selection.includes('Log merger')) {
-      console.clear()
       console.log(
         `\n###########################\nLog Merger\n###########################`
       )
@@ -220,7 +229,6 @@ export const mainMenu = async () => {
         await logsConsole(answer)
       })
     } else if (answer.selection.includes('Log streamer')) {
-      console.clear()
       console.log(
         `\n###########################\nLog Streamer\n###########################`
       )
@@ -228,58 +236,24 @@ export const mainMenu = async () => {
         logsStream(answer)
       })
     } else if (answer.selection.includes('Delete pods')) {
-      console.log(
-        `\n###########################\nDelete Pods\n###########################`
-      )
-      selector('pods', 'checkbox').then(async (answer: Selection) => {
-        await deleteResources('pods', answer.selection as string[])
-      })
+      deleteResourceResponse('pods')
     } else if (answer.selection.includes('Delete deployments')) {
-      console.clear()
-      console.log(
-        `\n###########################\nDelete Deployments\n###########################`
-      )
-      selector('deployments', 'checkbox').then(async (answer: Selection) => {
-        await deleteResources('deployments', answer.selection as string[])
-      })
+      deleteResourceResponse('deployments')
     } else if (answer.selection.includes('Delete services')) {
-      console.log(
-        `\n###########################\nDelete Services\n###########################`
-      )
-      selector('services', 'checkbox').then(async (answer: Selection) => {
-        await deleteResources('services', answer.selection as string[])
-      })
+      deleteResourceResponse('services')
     } else if (answer.selection.includes('Delete secrets')) {
-      console.log(
-        `\n###########################\nDelete Secrets\n###########################`
-      )
-      selector('secrets', 'checkbox').then(async (answer: Selection) => {
-        await deleteResources('secrets', answer.selection as string[])
-      })
+      deleteResourceResponse('secrets')
     } else if (answer.selection.includes('Delete configMap')) {
-      console.log(
-        `\n###########################\nDelete configMaps\n###########################`
-      )
-      selector('configMaps', 'checkbox').then(async (answer: Selection) => {
-        await deleteResources('configMaps', answer.selection as string[])
-      })
+      deleteResourceResponse('configMaps')
     } else if (answer.selection.includes('Delete service account')) {
-      console.log(
-        `\n###########################\nDelete Service Accounts\n###########################`
-      )
-      selector('serviceAccounts', 'checkbox').then(
-        async (answer: Selection) => {
-          await deleteResources('serviceAccounts', answer.selection as string[])
-        }
-      )
+      deleteResourceResponse('serviceAccounts')
     } else if (answer.selection.includes('Change context')) {
-      console.clear()
-
       console.log(
         `\n###########################\nChange Context\n###########################`
       )
       await contextSwitcher()
-      mainMenu()
+      console.clear()
+      await mainMenu()
     } else if (answer.selection.includes('Change namespace')) {
       console.log(
         `\n###########################\nChange Namespace\n###########################`
