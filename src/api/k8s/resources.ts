@@ -1,4 +1,5 @@
 import { k8sCore, k8sApps } from '.'
+import { ResourceType } from '../../types'
 
 export let namespace: string | undefined = 'default'
 
@@ -30,43 +31,36 @@ export const getAllDeployments = () => {
   return k8sApps.listDeploymentForAllNamespaces()
 }
 
-export const getSecrets = (namespace: string)=>{
+export const getSecrets = (namespace: string) => {
   return k8sCore.listNamespacedSecret(namespace)
 }
 
-export const getConfigMaps = (namespace: string)=>{
+export const getConfigMaps = (namespace: string) => {
   return k8sCore.listNamespacedConfigMap(namespace)
 }
 
-export const getServiceAccounts = (namespace: string)=>{
+export const getServiceAccounts = (namespace: string) => {
   return k8sCore.listNamespacedServiceAccount(namespace)
 }
 
 export const deleteResource = (
-  resourceType:
-    | 'pod'
-    | 'deployment'
-    | 'daemonset'
-    | 'service'
-    | 'secret'
-    | 'configMap'
-    | 'serviceAccount',
+  resourceType: ResourceType,
   namespace: string,
   name: string
 ) => {
-  if (resourceType === 'pod') {
+  if (resourceType === 'pods') {
     return k8sCore.deleteNamespacedPod(name, namespace)
-  } else if (resourceType === 'deployment') {
+  } else if (resourceType === 'deployments') {
     return k8sApps.deleteNamespacedDeployment(name, namespace)
-  } else if (resourceType === 'daemonset') {
+  } else if (resourceType === 'daemonsets') {
     return k8sApps.deleteNamespacedDaemonSet(name, namespace)
-  } else if (resourceType === 'service') {
+  } else if (resourceType === 'services') {
     return k8sCore.deleteNamespacedService(name, namespace)
-  } else if (resourceType === 'secret') {
+  } else if (resourceType === 'secrets') {
     return k8sCore.deleteNamespacedSecret(name, namespace)
-  }else if (resourceType === 'configMap') {
+  } else if (resourceType === 'configMaps') {
     return k8sCore.deleteNamespacedConfigMap(name, namespace)
-  }else if (resourceType === 'serviceAccount') {
+  } else if (resourceType === 'serviceAccounts') {
     return k8sCore.deleteNamespacedServiceAccount(name, namespace)
   }
   return

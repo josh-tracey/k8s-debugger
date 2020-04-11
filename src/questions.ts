@@ -10,6 +10,7 @@ import {
 } from '@kubernetes/client-node'
 import api from './api'
 import RootStore, { ILog } from './store'
+import { ResourceType } from './types'
 
 interface Confirm {
   confirm: string
@@ -17,18 +18,6 @@ interface Confirm {
 
 interface Selection {
   selection: string | string[]
-}
-
-interface PodSelection {
-  pods: string[]
-}
-
-interface NamespaceSelection {
-  namespace: string
-}
-
-interface DeploymentSelection {
-  deployments: string[]
 }
 
 const defaultPageSize = 15
@@ -109,96 +98,40 @@ const rootMenu = async (): Promise<Selection> => {
   })
 }
 
-const podSelector = async (): Promise<PodSelection> => {
-  const pods = (await api.getPods(RootStore.currentNamespace)).body
-  return inquirer.prompt<PodSelection>({
-    name: 'pods',
-    pageSize: defaultPageSize,
-    choices: pods.items.map((pod: V1Pod) => {
-      return pod.metadata ? pod.metadata.name! : ''
-    }),
-    type: 'checkbox',
-  })
+interface ResourceMap {
+  [key: string]: { api: (namespace: string) => Promise<any>; type: any }
 }
 
-const namespaceSelector = async (): Promise<NamespaceSelection> => {
-  const namespaces = (await api.getNamespaces()).body
-  return inquirer.prompt<NamespaceSelection>({
-    name: 'namespace',
-    pageSize: defaultPageSize,
-    choices: namespaces.items.map((namespace: V1Namespace) => {
-      return namespace.metadata ? namespace.metadata.name! : ''
-    }),
-    type: 'list',
-  })
+const mapResource: ResourceMap = {
+  configMaps: { api: api.getConfigMaps, type: V1ConfigMap },
+  deployments: { api: api.getDeployments, type: V1Deployment },
+  namespaces: { api: api.getNamespaces, type: V1Namespace },
+  pods: { api: api.getPods, type: V1Pod },
+  secrets: { api: api.getSecrets, type: V1Secret },
+  serviceAccounts: { api: api.getServiceAccounts, type: V1ServiceAccount },
+  services: { api: api.getServices, type: V1Service },
 }
 
-const deploymentSelector = async (): Promise<DeploymentSelection> => {
-  const deployments = (await api.getDeployments(RootStore.currentNamespace))
-    .body
-  return inquirer.prompt<DeploymentSelection>({
-    name: 'deployments',
-    pageSize: defaultPageSize,
-    choices: deployments.items.map((deployment: V1Deployment) => {
-      return deployment.metadata ? deployment.metadata.name! : ''
-    }),
-    type: 'checkbox',
-  })
-}
-
-const serviceSelector = async (): Promise<Selection> => {
-  const services = (await api.getServices(RootStore.currentNamespace)).body
-  return inquirer.prompt<Selection>({
-    name: 'selection',
-    pageSize: defaultPageSize,
-    choices: services.items.map((service: V1Service) => {
-      return service.metadata ? service.metadata.name! : ''
-    }),
-    type: 'checkbox',
-  })
-}
-
-const configMapSelector = async (): Promise<Selection> => {
-  const configMaps = (await api.getConfigMaps(RootStore.currentNamespace)).body
-  return inquirer.prompt<Selection>({
-    name: 'selection',
-    pageSize: defaultPageSize,
-    choices: configMaps.items.map((configMap: V1ConfigMap) => {
-      return configMap.metadata ? configMap.metadata.name! : ''
-    }),
-    type: 'checkbox',
-  })
-}
-
-const serviceAccountSelector = async (): Promise<Selection> => {
-  const serviceAccounts = (
-    await api.getServiceAccounts(RootStore.currentNamespace)
+const selector = async (
+  resourceType: ResourceType,
+  type: 'checkbox' | 'list'
+) => {
+  const resource = (
+    await mapResource[resourceType].api(RootStore.currentNamespace)
   ).body
   return inquirer.prompt<Selection>({
     name: 'selection',
     pageSize: defaultPageSize,
-    choices: serviceAccounts.items.map((serviceAccount: V1ServiceAccount) => {
-      return serviceAccount.metadata ? serviceAccount.metadata.name! : ''
+    choices: resource.items.map((item: typeof resource.type) => {
+      return item.metadata ? item.metadata.name! : ''
     }),
-    type: 'checkbox',
+    type: type,
   })
 }
 
-const secretSelector = async (): Promise<Selection> => {
-  const secrets = (await api.getSecrets(RootStore.currentNamespace)).body
-  return inquirer.prompt<Selection>({
-    name: 'selection',
-    pageSize: defaultPageSize,
-    choices: secrets.items.map((secret: V1Secret) => {
-      return secret.metadata ? secret.metadata.name! : ''
-    }),
-    type: 'checkbox',
-  })
-}
-
-const logsStream = async (answer: PodSelection) => {
+const logsStream = async (answer: Selection) => {
   console.clear()
-  const choices: string[] = answer.pods
+  const choices: string[] = answer.selection as string[]
   if (choices.length > 0)
     choices.forEach((name: string) => {
       api.streamLog(name, RootStore.currentNamespace)
@@ -208,124 +141,32 @@ const logsStream = async (answer: PodSelection) => {
   }
 }
 
-const deletePods = async (answer: PodSelection) => {
+const deleteResources = async (
+  resourceType: ResourceType,
+  resources: string[]
+) => {
   console.clear()
   let confirmed = true
   if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.pods)
+    console.log('To be deleted: ', resources)
     await prodConfirm().then((answer: Confirm) => {
       if (!['Yes'].includes(answer.confirm)) confirmed = false
     })
   }
 
   if (confirmed) {
-    answer.pods.forEach((name: string) => {
-      api.deleteResource('pod', RootStore.currentNamespace, name)
+    resources.forEach((name: string) => {
+      api.deleteResource(resourceType, RootStore.currentNamespace, name)
     })
-    console.log('Deleted: ', answer.pods)
+    console.log('Deleted: ', resources)
   }
   mainMenu()
 }
 
-const deleteDeployment = async (answer: DeploymentSelection) => {
-  console.clear()
-  let confirmed = true
-  if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.deployments)
-    await prodConfirm().then((answer: Confirm) => {
-      if (!['y', 'yes', 'Y', 'YES'].includes(answer.confirm)) confirmed = false
-    })
-  }
-
-  if (confirmed) {
-    answer.deployments.forEach((name: string) => {
-      api.deleteResource('deployment', RootStore.currentNamespace, name)
-    })
-    console.log('Deleted: ', answer.deployments)
-  }
-  mainMenu()
-}
-
-const deleteServices = async (answer: Selection) => {
-  console.clear()
-  let confirmed = true
-  if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.selection)
-    await prodConfirm().then((answer: Confirm) => {
-      if (!['Yes'].includes(answer.confirm)) confirmed = false
-    })
-  }
-
-  if (confirmed) {
-    ;(answer.selection as string[]).forEach((name: string) => {
-      api.deleteResource('service', RootStore.currentNamespace, name)
-    })
-    console.log('Deleted: ', answer.selection)
-  }
-  mainMenu()
-}
-
-const deleteSecrets = async (answer: Selection) => {
-  console.clear()
-  let confirmed = true
-  if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.selection)
-    await prodConfirm().then((answer: Confirm) => {
-      if (!['Yes'].includes(answer.confirm)) confirmed = false
-    })
-  }
-
-  if (confirmed) {
-    ;(answer.selection as string[]).forEach((name: string) => {
-      api.deleteResource('secret', RootStore.currentNamespace, name)
-    })
-    console.log('Deleted: ', answer.selection)
-  }
-  mainMenu()
-}
-
-const deleteConfigMaps = async (answer: Selection) => {
-  console.clear()
-  let confirmed = true
-  if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.selection)
-    await prodConfirm().then((answer: Confirm) => {
-      if (!['Yes'].includes(answer.confirm)) confirmed = false
-    })
-  }
-
-  if (confirmed) {
-    ;(answer.selection as string[]).forEach((name: string) => {
-      api.deleteResource('configMap', RootStore.currentNamespace, name)
-    })
-    console.log('Deleted: ', answer.selection)
-  }
-  mainMenu()
-}
-
-const deleteServiceAccounts = async (answer: Selection) => {
-  console.clear()
-  let confirmed = true
-  if (RootStore.currentContext?.match(/prod/)) {
-    console.log('To be deleted: ', answer.selection)
-    await prodConfirm().then((answer: Confirm) => {
-      if (!['Yes'].includes(answer.confirm)) confirmed = false
-    })
-  }
-
-  if (confirmed) {
-    ;(answer.selection as string[]).forEach((name: string) => {
-      api.deleteResource('serviceAccount', RootStore.currentNamespace, name)
-    })
-    console.log('Deleted: ', answer.selection)
-  }
-  mainMenu()
-}
-
-const logsConsole = async (answer: PodSelection) => {
+const logsConsole = async (answer: Selection) => {
   const start = new Date().getTime()
   RootStore.clearLogs()
-  answer.pods.forEach((name: string) => {
+  ;(answer.selection as string[]).forEach((name: string) => {
     api
       .getLogs(name, RootStore.currentNamespace)
       ?.forEach((matchedLine: RegExpExecArray | null) => {
@@ -375,7 +216,7 @@ export const mainMenu = async () => {
       console.log(
         `\n###########################\nLog Merger\n###########################`
       )
-      podSelector().then(async (answer: PodSelection) => {
+      selector('pods', 'checkbox').then(async (answer: Selection) => {
         await logsConsole(answer)
       })
     } else if (answer.selection.includes('Log streamer')) {
@@ -383,52 +224,54 @@ export const mainMenu = async () => {
       console.log(
         `\n###########################\nLog Streamer\n###########################`
       )
-      podSelector().then(async (answer: PodSelection) => {
+      selector('pods', 'checkbox').then(async (answer: Selection) => {
         logsStream(answer)
       })
     } else if (answer.selection.includes('Delete pods')) {
       console.log(
         `\n###########################\nDelete Pods\n###########################`
       )
-      podSelector().then(async (answer: PodSelection) => {
-        await deletePods(answer)
+      selector('pods', 'checkbox').then(async (answer: Selection) => {
+        await deleteResources('pods', answer.selection as string[])
       })
     } else if (answer.selection.includes('Delete deployments')) {
       console.clear()
       console.log(
         `\n###########################\nDelete Deployments\n###########################`
       )
-      deploymentSelector().then(async (answer: DeploymentSelection) => {
-        await deleteDeployment(answer)
+      selector('deployments', 'checkbox').then(async (answer: Selection) => {
+        await deleteResources('deployments', answer.selection as string[])
       })
     } else if (answer.selection.includes('Delete services')) {
       console.log(
         `\n###########################\nDelete Services\n###########################`
       )
-      serviceSelector().then(async (answer: Selection) => {
-        await deleteServices(answer)
+      selector('services', 'checkbox').then(async (answer: Selection) => {
+        await deleteResources('services', answer.selection as string[])
       })
     } else if (answer.selection.includes('Delete secrets')) {
       console.log(
         `\n###########################\nDelete Secrets\n###########################`
       )
-      secretSelector().then(async (answer: Selection) => {
-        await deleteSecrets(answer)
+      selector('secrets', 'checkbox').then(async (answer: Selection) => {
+        await deleteResources('secrets', answer.selection as string[])
       })
     } else if (answer.selection.includes('Delete configMap')) {
       console.log(
         `\n###########################\nDelete configMaps\n###########################`
       )
-      configMapSelector().then(async (answer: Selection) => {
-        await deleteConfigMaps(answer)
+      selector('configMaps', 'checkbox').then(async (answer: Selection) => {
+        await deleteResources('configMaps', answer.selection as string[])
       })
     } else if (answer.selection.includes('Delete service account')) {
       console.log(
         `\n###########################\nDelete Service Accounts\n###########################`
       )
-      serviceAccountSelector().then(async (answer: Selection) => {
-        await deleteServiceAccounts(answer)
-      })
+      selector('serviceAccounts', 'checkbox').then(
+        async (answer: Selection) => {
+          await deleteResources('serviceAccounts', answer.selection as string[])
+        }
+      )
     } else if (answer.selection.includes('Change context')) {
       console.clear()
 
@@ -441,8 +284,8 @@ export const mainMenu = async () => {
       console.log(
         `\n###########################\nChange Namespace\n###########################`
       )
-      await namespaceSelector().then(async (answer: NamespaceSelection) => {
-        RootStore.setNamespace(answer.namespace)
+      await selector('namespaces', 'list').then(async (answer: Selection) => {
+        RootStore.setNamespace(answer.selection as string)
       })
       console.clear()
       await mainMenu()
