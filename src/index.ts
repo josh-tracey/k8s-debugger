@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/local/bin/node
 import { mainMenu, contextSwitcher } from './questions'
 
 const run = async () => {
