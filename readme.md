@@ -15,6 +15,7 @@ Console debug tool for kubernetes
 
 ### Planned Features 
 
+- Pod Status display
 - Creation / editing of cron jobs
 - Manual Cron job execution
 - Retrieve details on cron jobs

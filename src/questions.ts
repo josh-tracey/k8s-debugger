@@ -11,6 +11,7 @@ import {
 import api from './api'
 import RootStore, { ILog } from './store'
 import { ResourceType } from './types'
+import * as columnify from 'columnify'
 
 interface Confirm {
   confirm: string
@@ -83,6 +84,7 @@ const rootMenu = async (): Promise<Selection> => {
       'Log streamer',
       'Log merger',
       new inquirer.Separator('--Resource Management--'),
+      'Pod Statuses',
       'Delete pods',
       'Delete deployments',
       'Delete services',
@@ -139,6 +141,22 @@ const logsStream = async (answer: Selection) => {
   else {
     mainMenu()
   }
+}
+
+const podStatuses = async () => {
+  const data: { [key: string]: string }[] = []
+  const pods = (await api.getPods(RootStore.currentNamespace)).body
+  pods.items.forEach((pod: V1Pod) => {
+    if (pod.metadata && pod.status) {
+      data.push({ podName: pod.metadata.name!, status: pod.status.phase!, reason: pod.status.reason! })
+    }
+  })
+  const columns = columnify(data, {
+    minWidth: 20,
+    config: { name: { maxWidth: 30 } },
+  })
+  console.log(columns)
+  mainMenu()
 }
 
 const deleteResources = async (
@@ -235,6 +253,8 @@ export const mainMenu = async () => {
       selector('pods', 'checkbox').then(async (answer: Selection) => {
         logsStream(answer)
       })
+    } else if (answer.selection.includes('Pod Statuses')) {
+      podStatuses()
     } else if (answer.selection.includes('Delete pods')) {
       deleteResourceResponse('pods')
     } else if (answer.selection.includes('Delete deployments')) {
