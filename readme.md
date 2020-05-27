@@ -12,10 +12,11 @@ Console debug tool for kubernetes
 - Merged logs of multi pods
 - Log Streaming
 - Easy Context and namespace selection
+- Live Reloading
+- Pod Status View
 
 ### Planned Features 
 
-- Pod Status display
 - Creation / editing of cron jobs
 - Manual Cron job execution
 - Retrieve details on cron jobs
