@@ -17,15 +17,21 @@ interface Confirm {
   confirm: string
 }
 
+const refreshPeriod = 4000
+const gracePeriod = refreshPeriod * 4
+
 interface Selection {
   selection: string | string[]
 }
 
 const defaultPageSize = 15
 
+const FgRed = '\x1b[31m'
 const FgYellow = '\x1b[33m'
 const Reset = '\x1b[0m'
 const FgGreen = '\x1b[32m'
+const FgLightGreen = '\x1b[92m'
+
 const FgBlue = '\x1b[34m'
 
 const getTargetContext = async () => {
@@ -34,8 +40,8 @@ const getTargetContext = async () => {
       type: 'list',
       name: 'answer',
       choices: api.getContexts().map((x) => ({
-        name: x,
-        value: x,
+        name: x.name,
+        value: x.name,
       })),
       message: 'Choose k8s context: ',
     })
@@ -80,11 +86,13 @@ const rootMenu = async (): Promise<Selection> => {
     name: 'selection',
     pageSize: defaultPageSize,
     choices: [
+      new inquirer.Separator('--Mission Critical--'),
+      'Live reload',
       new inquirer.Separator('--Logging--'),
       'Log streamer',
       'Log merger',
       new inquirer.Separator('--Resource Management--'),
-      'Pod Statuses',
+      'Pod statuses',
       'Delete pods',
       'Delete deployments',
       'Delete services',
@@ -143,12 +151,27 @@ const logsStream = async (answer: Selection) => {
   }
 }
 
+const colorStatus = (status?: string) => {
+  if (status === 'Running') {
+    return `${FgLightGreen}${status}${Reset}`
+  } else if (status === 'Succeeded') {
+    return `${FgGreen}${status}${Reset}`
+  } else if (status === 'Failed') {
+    return `${FgRed}${status}${Reset}`
+  }
+  return status || 'Unknown'
+}
+
 const podStatuses = async () => {
   const data: { [key: string]: string }[] = []
   const pods = (await api.getPods(RootStore.currentNamespace)).body
   pods.items.forEach((pod: V1Pod) => {
     if (pod.metadata && pod.status) {
-      data.push({ podName: pod.metadata.name!, status: pod.status.phase!, reason: pod.status.reason! })
+      data.push({
+        podName: pod.metadata.name!,
+        status: colorStatus(pod.status.phase),
+        reason: pod.status.reason!,
+      })
     }
   })
   const columns = columnify(data, {
@@ -156,6 +179,141 @@ const podStatuses = async () => {
     config: { name: { maxWidth: 30 } },
   })
   console.log(columns)
+  mainMenu()
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
+const waitForPodsTobeReady = async (pods: string[]) => {
+  await Promise.all(
+    pods.map(async (pod) => {
+      let state = await api
+        .getPodStatus(pod, RootStore.currentNamespace)
+        .catch((error) => 'Pending')
+      while (state !== 'Running') {
+        await sleep(refreshPeriod)
+        state = await api
+          .getPodStatus(pod, RootStore.currentNamespace)
+          .catch((error) => {
+            return 'Running'
+          })
+      }
+      return
+    })
+  )
+  return true
+}
+
+const liveReload = async () => {
+  const question = await selector('deployments', 'list')
+  const name = question.selection as string
+  let deployment = await api.getDeploymentDetails(
+    name,
+    RootStore.currentNamespace
+  )
+
+  // Retrieve existing pods and store for later reference.
+  let allPods = await api.getPods(RootStore.currentNamespace)
+  const originalPods = allPods.body.items
+    .filter((pod) =>
+      pod.metadata?.name?.includes(
+        deployment.deployment.body.metadata?.name || ''
+      )
+    )
+    .map((pod) => pod.metadata?.name)
+
+  // replica size and then Scale up deployment
+  let originalReplicas
+  if (deployment.scale.body.spec && deployment.scale.body.spec.replicas) {
+    originalReplicas = deployment.scale.body.spec.replicas
+    deployment.scale.body.spec.replicas =
+      deployment.scale.body.spec.replicas + 1
+    deployment.scale = await api.setScaleDeployment(
+      name,
+      RootStore.currentNamespace,
+      deployment.scale.body
+    )
+  }
+
+  console.log(originalPods)
+
+  if (originalReplicas) {
+    console.log('Scaled to ', deployment.scale.body.spec?.replicas)
+    // wait for deployments new pods to be ready
+    await sleep(gracePeriod)
+
+    allPods = await api.getPods(RootStore.currentNamespace)
+
+    const updatedPods = allPods.body.items
+      .filter((pod) =>
+        pod.metadata?.name?.includes(
+          deployment.deployment.body.metadata?.name || ''
+        )
+      )
+      .map((pod) => pod.metadata?.name || '')
+    const newPods = updatedPods.filter((pod) => !originalPods.includes(pod))
+
+    console.log("New Pods: ", newPods)
+
+    // wait for new pods to be ready
+    await waitForPodsTobeReady(newPods)
+    console.log('New Backup Pod Created...')
+
+    console.log('Deleteing Old Pods')
+    // delete old pods
+    await Promise.all(
+      originalPods.map(
+        async (pod) =>
+          await api.deleteResource(
+            'pods',
+            RootStore.currentNamespace,
+            pod || ''
+          )
+      )
+    )
+    console.log("Deleted old pods.")
+
+    await waitForPodsTobeReady(updatedPods)
+
+    allPods = await api.getPods(RootStore.currentNamespace)
+    const newUpdatedPods = allPods.body.items
+      .filter(
+        (pod) =>
+          pod.metadata?.name?.includes(
+            deployment.deployment.body.metadata?.name || ''
+          ) &&
+          (pod.status?.phase === 'Pending' || pod.status?.phase === 'Running')
+      )
+      .map((pod) => pod.metadata?.name || '')
+
+    console.log('Waiting for pods to be ready...')
+
+    // wait for new pods to be ready
+    await waitForPodsTobeReady(newUpdatedPods)
+
+    await sleep(gracePeriod)
+
+    deployment = await api.getDeploymentDetails(
+      name,
+      RootStore.currentNamespace
+    )
+
+    console.log('Scaled to ', originalReplicas)
+    // scale back to original replica size
+    deployment.scale.body.spec!.replicas = originalReplicas
+    deployment.scale = await api.setScaleDeployment(
+      name,
+      RootStore.currentNamespace,
+      deployment.scale.body
+    )
+    console.log('Live Reload Done!')
+  } else {
+    console.log(`${question.selection} deployment has no replicas running`)
+  }
   mainMenu()
 }
 
@@ -253,7 +411,9 @@ export const mainMenu = async () => {
       selector('pods', 'checkbox').then(async (answer: Selection) => {
         logsStream(answer)
       })
-    } else if (answer.selection.includes('Pod Statuses')) {
+    } else if (answer.selection.includes('Live reload')) {
+      liveReload()
+    } else if (answer.selection.includes('Pod statuses')) {
       podStatuses()
     } else if (answer.selection.includes('Delete pods')) {
       deleteResourceResponse('pods')

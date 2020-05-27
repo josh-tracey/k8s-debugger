@@ -6,13 +6,16 @@ import {
   getCurrentNamespace,
   getDeployments,
   getNamespaces,
+  getDeploymentDetails,
   getPods,
   getSecrets,
   getServiceAccounts,
   getServices,
+  setScaleDeployment,
   setNamespace,
 } from './k8s/resources'
 import { getContexts, getCurrentContext, setContext } from './k8s'
+import { getPodStatus } from './k8s/resources';
 
 export default {
   deleteResource,
@@ -22,6 +25,7 @@ export default {
   getCurrentContext,
   getCurrentNamespace,
   getDeployments,
+  getDeploymentDetails,
   getLogs,
   getNamespaces,
   getPods,
@@ -29,6 +33,8 @@ export default {
   getServiceAccounts,
   getServices,
   setContext,
+  getPodStatus,
   setNamespace,
+  setScaleDeployment,
   streamLog,
 }

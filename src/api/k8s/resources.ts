@@ -27,6 +27,27 @@ export const getDeployments = async (namespace: string) => {
   return k8sApps.listNamespacedDeployment(namespace)
 }
 
+export const setScaleDeployment = async (
+  name: string,
+  namespace: string,
+  spec: object
+) => {
+  return await k8sApps
+    .replaceNamespacedDeploymentScale(name, namespace, spec)
+    .then((response) => response)
+    .catch((error) => {
+      console.log(error)
+      return error
+    })
+}
+
+export const getDeploymentDetails = async (name: string, namespace: string) => {
+  return {
+    scale: await k8sApps.readNamespacedDeploymentScale(name, namespace),
+    deployment: await k8sApps.readNamespacedDeployment(name, namespace),
+  }
+}
+
 export const getAllDeployments = () => {
   return k8sApps.listDeploymentForAllNamespaces()
 }
@@ -41,6 +62,11 @@ export const getConfigMaps = (namespace: string) => {
 
 export const getServiceAccounts = (namespace: string) => {
   return k8sCore.listNamespacedServiceAccount(namespace)
+}
+
+export const getPodStatus = async (pod: string, namespace: string) => {
+  return (await k8sCore.readNamespacedPodStatus(pod, namespace)).body.status
+    ?.phase
 }
 
 export const deleteResource = (
