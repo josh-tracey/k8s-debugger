@@ -8,7 +8,12 @@ export const getCurrentNamespace = () => {
 }
 
 export const getNamespaces = async () => {
-  return k8sCore.listNamespace()
+  try {
+    return k8sCore.listNamespace()
+  } catch (e) {
+    console.log(e.message)
+    return
+  }
 }
 
 export const setNamespace = async (nextNamespace: string) => {
@@ -16,7 +21,12 @@ export const setNamespace = async (nextNamespace: string) => {
 }
 
 export const getServices = async (namespace: string) => {
-  return k8sCore.listNamespacedService(namespace)
+  try {
+    return k8sCore.listNamespacedService(namespace)
+  } catch (e) {
+    console.log(e.message)
+    return
+  }
 }
 
 export const getPods = (namespace: string) => {
@@ -32,24 +42,39 @@ export const setScaleDeployment = async (
   namespace: string,
   spec: object
 ) => {
-  return await k8sApps
-    .replaceNamespacedDeploymentScale(name, namespace, spec)
-    .then((response) => response)
-    .catch((error) => {
-      console.log(error)
-      return error
-    })
+  try {
+    return await k8sApps
+      .replaceNamespacedDeploymentScale(name, namespace, spec)
+      .then((response) => response)
+      .catch((error) => {
+        console.log(error)
+        return error
+      })
+  } catch (e) {
+    console.log(e.message)
+    return
+  }
 }
 
 export const getDeploymentDetails = async (name: string, namespace: string) => {
-  return {
-    scale: await k8sApps.readNamespacedDeploymentScale(name, namespace),
-    deployment: await k8sApps.readNamespacedDeployment(name, namespace),
+  try {
+    return {
+      scale: await k8sApps.readNamespacedDeploymentScale(name, namespace),
+      deployment: await k8sApps.readNamespacedDeployment(name, namespace),
+    }
+  } catch (e) {
+    console.log(e.message)
+    return
   }
 }
 
 export const getAllDeployments = () => {
-  return k8sApps.listDeploymentForAllNamespaces()
+  try {
+    return k8sApps.listDeploymentForAllNamespaces()
+  } catch (e) {
+    console.log(e.message)
+    return
+  }
 }
 
 export const getSecrets = (namespace: string) => {
@@ -67,6 +92,56 @@ export const getServiceAccounts = (namespace: string) => {
 export const getPodStatus = async (pod: string, namespace: string) => {
   return (await k8sCore.readNamespacedPodStatus(pod, namespace)).body.status
     ?.phase
+}
+
+export const getServiceProxy = async (service: string, namespace: string) => {
+  return (await k8sCore.connectGetNamespacedServiceProxy(service, namespace))
+    .body
+}
+
+export const getPodLogs = async (pod: string, namespace: string) => {
+  const logTimestampRegex = /(\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}\.\d{9}[A-Z]) (.*)/gu
+  try {
+    const logs = (
+      await k8sCore.readNamespacedPodLog(
+        pod,
+        namespace,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true
+      )
+    ).body.match(/(.*)/gu)
+
+    if (logs)
+      return logs.map((line: string) => {
+        const match = logTimestampRegex.exec(line)
+        return match
+      })
+    return null
+  } catch (e) {
+    console.log(e.message)
+    return
+  }
+}
+
+export const streamLog = async (pod: string, namespace: string) => {
+  return (
+    await k8sCore.readNamespacedPodLog(
+      pod,
+      namespace,
+      undefined,
+      true,
+      false,
+      undefined,
+      ' '
+    )
+  ).body
 }
 
 export const deleteResource = (

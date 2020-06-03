@@ -1,4 +1,4 @@
-import { streamLog, getLogs } from './k8s/logs'
+
 import {
   deleteResource,
   getAllDeployments,
@@ -8,6 +8,8 @@ import {
   getNamespaces,
   getDeploymentDetails,
   getPods,
+  getPodLogs as getLogs,
+  streamLog,
   getSecrets,
   getServiceAccounts,
   getServices,
@@ -15,7 +17,7 @@ import {
   setNamespace,
 } from './k8s/resources'
 import { getContexts, getCurrentContext, setContext } from './k8s'
-import { getPodStatus } from './k8s/resources';
+import { getPodStatus } from './k8s/resources'
 
 export default {
   deleteResource,
