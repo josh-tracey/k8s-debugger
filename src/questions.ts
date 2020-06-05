@@ -384,7 +384,8 @@ const logsConsole = async (answer: Selection) => {
 
   await Promise.all(
     (answer.selection as string[]).map(async (name: string) => {
-      ;(await api.getLogs(name, RootStore.currentNamespace))?.forEach(
+      const logs = await api.getLogs(name, RootStore.currentNamespace)
+      return logs?.forEach(
         (matchedLine: RegExpExecArray | null) => {
           if (matchedLine) {
             RootStore.addLog({
@@ -397,6 +398,7 @@ const logsConsole = async (answer: Selection) => {
       )
     })
   )
+
   RootStore.sortLogs()
   const end = new Date().getTime() - start
   let prevLogRecord: ILog | null = null

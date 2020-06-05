@@ -100,7 +100,7 @@ export const getServiceProxy = async (service: string, namespace: string) => {
 }
 
 export const getPodLogs = async (pod: string, namespace: string) => {
-  const logTimestampRegex = /(\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}\.\d{9}[A-Z]) (.*)/gu
+  const logTimestampRegex = /(\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}\.\d{1,12}\+\d{2}:\d{2}) (.*)/gu
   try {
     const logs = (
       await k8sCore.readNamespacedPodLog(
@@ -116,10 +116,12 @@ export const getPodLogs = async (pod: string, namespace: string) => {
         undefined,
         true
       )
-    ).body.match(/(.*)/gu)
+    ).body
 
-    if (logs)
-      return logs.map((line: string) => {
+    const match = logs.match(/(.*)/gu) 
+
+    if (match)
+      return match.map((line: string) => {
         const match = logTimestampRegex.exec(line)
         return match
       })
