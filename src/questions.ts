@@ -160,32 +160,36 @@ const selector = async (
   ])
 }
 
-const logsStream = async (answer: Selection) => {
-  console.clear()
-  const choices: string[] = answer.selection as string[]
-  if (choices.length > 0)
-    choices.map((name: string) => {
-      api
-        .streamLog(name, RootStore.currentNamespace)
-        .then((log) => console.log(log))
-    })
-  else {
-    mainMenu()
-  }
-}
+// const logsStream = async (answer: Selection) => {
+//   console.clear()
+//   const choices: string[] = answer.selection as string[]
+//   if (choices.length > 0)
+//     choices.map((name: string) => {
+//       api
+//         .streamLog(name, RootStore.currentNamespace)
+//         .then((log: any) => console.log(log))
+//     })
+//   else {
+//     mainMenu()
+//   }
+// }
 
-const colorStatus = (status?: string) => {
+export const colorStatus = (status?: string) => {
   if (status === 'Running') {
     return `${FgLightGreen}${status}${Reset}`
   } else if (status === 'Succeeded') {
     return `${FgGreen}${status}${Reset}`
-  } else if (status === 'Failed') {
+  } else if (
+    status === 'Failed' ||
+    status === 'Terminating' ||
+    status === 'Terminated'
+  ) {
     return `${FgRed}${status}${Reset}`
   }
   return status || 'Unknown'
 }
 
-const findState = (state: V1ContainerState) => {
+export const findState = (state: V1ContainerState) => {
   if (state.running) {
     return 'Running'
   } else if (state.terminated) {
@@ -197,22 +201,18 @@ const findState = (state: V1ContainerState) => {
   }
 }
 
-const podStatuses = async () => {
-  const data: { [key: string]: string }[] = []
-  const pods = (await api.getPods(RootStore.currentNamespace)).body
-  pods.items.forEach((pod: V1Pod) => {
-    if (pod.metadata && pod.status) {
-      data.push({
-        podName: pod.metadata.name!,
-        status: colorStatus(pod.status.phase),
-        condition: findState(
-          pod.status.containerStatuses![
-            pod.status.containerStatuses!?.length - 1
-          ].state!
-        ),
-      })
-    }
-  })
+const podStatuses = async (answer: Selection) => {
+  const data: any[] = []
+  const pods = (await api.getPods(RootStore.currentNamespace)).body.items.map(
+    (pod) => pod.metadata?.name!
+  )
+  await Promise.all(
+    pods.map(async (pod: string) => {
+      if (pod) {
+        data.push(await api.getPodStatus(pod!, RootStore.currentNamespace!))
+      }
+    })
+  )
   const columns = columnify(data, {
     minWidth: 20,
     config: { name: { maxWidth: 30 } },
@@ -381,24 +381,22 @@ const deleteResources = async (
 const logsConsole = async (answer: Selection) => {
   const start = new Date().getTime()
   RootStore.clearLogs()
+  const selection = answer.selection as string[]
 
   await Promise.all(
-    (answer.selection as string[]).map(async (name: string) => {
+    selection.map(async (name: string) => {
       const logs = await api.getLogs(name, RootStore.currentNamespace)
-      return logs?.forEach(
-        (matchedLine: RegExpExecArray | null) => {
-          if (matchedLine) {
-            RootStore.addLog({
-              podName: name,
-              timestamp: new Date(matchedLine[1]),
-              log: matchedLine[2],
-            })
-          }
+      return logs?.map(async (matchedLine: RegExpExecArray | null) => {
+        if (matchedLine) {
+          RootStore.addLog({
+            podName: name,
+            timestamp: new Date(matchedLine[1]),
+            log: matchedLine[2],
+          })
         }
-      )
+      })
     })
   )
-
   RootStore.sortLogs()
   const end = new Date().getTime() - start
   let prevLogRecord: ILog | null = null
@@ -448,17 +446,17 @@ export const mainMenu = async () => {
       selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
         await logsConsole(answer)
       })
-    } else if (answer.selection.includes('Log streamer')) {
-      console.log(
-        `\n###########################\nLog Streamer\n###########################`
-      )
-      selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
-        logsStream(answer)
-      })
+      // } else if (answer.selection.includes('Log streamer')) {
+      //   console.log(
+      //     `\n###########################\nLog Streamer\n###########################`
+      //   )
+      //   selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
+      //     logsStream(answer)
+      //   })
     } else if (answer.selection.includes('Live reload')) {
       liveReload()
     } else if (answer.selection.includes('Pod statuses')) {
-      podStatuses()
+      await podStatuses(answer)
     } else if (answer.selection.includes('Delete pods')) {
       deleteResourceResponse('pods')
     } else if (answer.selection.includes('Delete deployments')) {
