@@ -24,8 +24,6 @@ Console debug tool for kubernetes
 - Resource Status Reports
 - Ingress Resource Support
 
-#
-
 ## Installation
 
 ```

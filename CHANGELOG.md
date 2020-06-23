@@ -1,0 +1,25 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+- Config loading, with multiple file specified in environment needs fixing.
+- Context switching needs proper error handling.
+
+## [0.5.0] - 2020-05-20
+
+### Added
+
+- Log merger, gives ability to select any number of avaliable pods and retrieve the logs and merge into grouped by time series.
+- Pod Status, displays table with all the pods in current namespace.
+- Delete multiple pods, deployments, services, secrets.
+- Change currrent namspace.
+- Change current context.
+
+### Experimental
+
+- Live Reload, allows deployments to be live reloaded in production evnironments without interruptions to the users.
