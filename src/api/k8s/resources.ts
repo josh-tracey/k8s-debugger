@@ -41,11 +41,18 @@ export const getDeployments = async (namespace: string) => {
 export const setScaleDeployment = async (
   name: string,
   namespace: string,
-  spec: object
+  replicas: number
 ) => {
+  const res = await k8sApps.readNamespacedDeployment(name, namespace)
+
+  let deployment = res.body
+
+  deployment.spec!.replicas = replicas
+
   try {
     return await k8sApps
-      .replaceNamespacedDeploymentScale(name, namespace, spec)
+      //@ts-ignore
+      .replaceNamespacedDeploymentScale(name, namespace, deployment)
       .then((response) => response)
       .catch((error) => {
         console.log(error)
@@ -59,10 +66,7 @@ export const setScaleDeployment = async (
 
 export const getDeploymentDetails = async (name: string, namespace: string) => {
   try {
-    return {
-      scale: await k8sApps.readNamespacedDeploymentScale(name, namespace),
-      deployment: await k8sApps.readNamespacedDeployment(name, namespace),
-    }
+    return (await k8sApps.readNamespacedDeployment(name, namespace)).body
   } catch (e) {
     console.log(e.message)
     return
@@ -102,16 +106,7 @@ export const getPodStatus = async (pod: string, namespace: string) => {
           podStatus.status?.containerStatuses?.length! - 1
         ].state!
       )
-    ),
-    type: podStatus.status?.conditions![
-      podStatus.status?.conditions!.length - 1
-    ].type,
-    statusReason: podStatus.status?.conditions![
-      podStatus.status?.conditions!.length - 1
-    ].reason,
-    statusMessage: podStatus.status?.conditions![
-      podStatus.status?.conditions!.length - 1
-    ].message,
+    )
   }
 }
 

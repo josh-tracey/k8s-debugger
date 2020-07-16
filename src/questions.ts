@@ -259,29 +259,26 @@ const liveReload = async () => {
   let allPods = await api.getPods(RootStore.currentNamespace)
   const originalPods = allPods.body.items
     .filter((pod) =>
-      pod.metadata?.name?.includes(
-        deployment?.deployment.body.metadata?.name || ''
-      )
+      pod.metadata?.name?.includes(deployment?.metadata?.name || '')
     )
     .map((pod) => pod.metadata?.name)
 
   // replica size and then Scale up deployment
   let originalReplicas
-  if (deployment?.scale.body.spec && deployment.scale.body.spec.replicas) {
-    originalReplicas = deployment.scale.body.spec.replicas
-    deployment.scale.body.spec.replicas =
-      deployment.scale.body.spec.replicas + 1
-    deployment.scale = await api.setScaleDeployment(
+  if (deployment?.spec && deployment.spec?.replicas) {
+    originalReplicas = deployment.spec.replicas
+    const newReplicas = deployment.spec.replicas + 1
+    deployment = await api.setScaleDeployment(
       name,
       RootStore.currentNamespace,
-      deployment.scale.body
+      newReplicas
     )
   }
 
   console.log(originalPods)
 
   if (originalReplicas) {
-    console.log('Scaled to ', deployment?.scale.body.spec?.replicas)
+    console.log('Scaled to ', deployment?.spec?.replicas)
     // wait for deployments new pods to be ready
     await sleep(gracePeriod)
 
@@ -289,9 +286,7 @@ const liveReload = async () => {
 
     const updatedPods = allPods.body.items
       .filter((pod) =>
-        pod.metadata?.name?.includes(
-          deployment?.deployment.body.metadata?.name || ''
-        )
+        pod.metadata?.name?.includes(deployment?.metadata?.name || '')
       )
       .map((pod) => pod.metadata?.name || '')
     const newPods = updatedPods.filter((pod) => !originalPods.includes(pod))
@@ -322,9 +317,7 @@ const liveReload = async () => {
     const newUpdatedPods = allPods.body.items
       .filter(
         (pod) =>
-          pod.metadata?.name?.includes(
-            deployment?.deployment.body.metadata?.name || ''
-          ) &&
+          pod.metadata?.name?.includes(deployment?.metadata?.name || '') &&
           (pod.status?.phase === 'Pending' || pod.status?.phase === 'Running')
       )
       .map((pod) => pod.metadata?.name || '')
@@ -340,14 +333,12 @@ const liveReload = async () => {
       name,
       RootStore.currentNamespace
     )
-
     console.log('Scaled to ', originalReplicas)
     // scale back to original replica size
-    deployment!.scale.body.spec!.replicas = originalReplicas
-    deployment!.scale = await api.setScaleDeployment(
+    deployment! = await api.setScaleDeployment(
       name,
       RootStore.currentNamespace,
-      deployment!.scale.body
+      originalReplicas
     )
     console.log('Live Reload Done!')
   } else {

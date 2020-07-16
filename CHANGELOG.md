@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Todo
+
 - Config loading, with multiple file specified in environment needs fixing.
 - Context switching needs proper error handling.
+
+## [0.6.0] - 2020-07-17
+
+### Changed
+- Deployment scaling now done to spec of kubernetes client repo
+- Removed useless fields in pod status command.
 
 ## [0.5.0] - 2020-05-20
 
