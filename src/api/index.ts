@@ -9,7 +9,7 @@ import {
   getDeploymentDetails,
   getPods,
   getPodLogs as getLogs,
-  // streamLog,
+  streamLog,
   getSecrets,
   getServiceAccounts,
   getServices,
@@ -38,5 +38,5 @@ export default {
   getPodStatus,
   setNamespace,
   setScaleDeployment,
-  // streamLog,
+  streamLog,
 }

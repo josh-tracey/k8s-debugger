@@ -1,6 +1,8 @@
 import { k8sCore, k8sApps } from '.'
 import { ResourceType } from '../../types'
-import { findState, colorStatus } from '../../questions'
+import { colorStatus, findState } from '../../helpers'
+import { k8sLogs } from './index'
+import { Transform } from 'stream'
 
 export let namespace: string | undefined = 'default'
 
@@ -106,7 +108,7 @@ export const getPodStatus = async (pod: string, namespace: string) => {
           podStatus.status?.containerStatuses?.length! - 1
         ].state!
       )
-    )
+    ),
   }
 }
 
@@ -156,20 +158,25 @@ export const getPodLogs = async (pod: string, namespace: string) => {
     return
   }
 }
+export const streamLog = async (
+  podName: string,
+  namespace: string,
+  writer: Transform
+) => {
+  const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
-// export const streamLog = async (pod: string, namespace: string) => {
-//   return (
-//     await k8sCore.readNamespacedPodLog(
-//       pod,
-//       namespace,
-//       undefined,
-//       true,
-//       false,
-//       undefined,
-//       ' '
-//     )
-//   ).body
-// }
+  const container = pod.body.spec?.containers[0]
+  k8sLogs.log(
+    namespace,
+    podName,
+    container?.name || '',
+    writer,
+    (err: any) => {
+      console.log(err)
+    },
+    { follow: true, sinceSeconds: 60, timestamps: true }
+  )
+}
 
 export const deleteResource = (
   resourceType: ResourceType,

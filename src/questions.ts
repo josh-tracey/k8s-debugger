@@ -7,12 +7,14 @@ import {
   V1ConfigMap,
   V1ServiceAccount,
   V1Secret,
-  V1ContainerState,
 } from '@kubernetes/client-node'
 import api from './api'
-import RootStore, { ILog } from './store'
+import RootStore from './store'
 import { ResourceType } from './types'
-import * as columnify from 'columnify'
+import { logsConsole } from './operations/logMerger'
+import { liveReload } from './operations/liveReload'
+import { podStatuses } from './operations/podStatues'
+import { logsStream } from './operations/logStreamer'
 
 interface Confirm {
   confirm: string
@@ -20,22 +22,11 @@ interface Confirm {
 
 inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus'))
 
-const refreshPeriod = 4000
-const gracePeriod = refreshPeriod * 4
-
-interface Selection {
+export interface Selection {
   selection: string | string[]
 }
 
 const defaultPageSize = 15
-
-const FgRed = '\x1b[31m'
-const FgYellow = '\x1b[33m'
-const Reset = '\x1b[0m'
-const FgGreen = '\x1b[32m'
-const FgLightGreen = '\x1b[92m'
-
-const FgBlue = '\x1b[34m'
 
 const getTargetContext = async () => {
   return (
@@ -92,6 +83,7 @@ const rootMenu = async (): Promise<Selection> => {
       new inquirer.Separator('--Mission Critical--'),
       'Live reload',
       new inquirer.Separator('--Logging--'),
+      'Log streamer',
       'Log merger',
       new inquirer.Separator('--Resource Management--'),
       'Pod statuses',
@@ -110,11 +102,11 @@ const rootMenu = async (): Promise<Selection> => {
   })
 }
 
-interface ResourceMap {
+export interface ResourceMap {
   [key: string]: { api: (namespace: string) => Promise<any>; type: any }
 }
 
-const mapResource: ResourceMap = {
+export const mapResource: ResourceMap = {
   configMaps: { api: api.getConfigMaps, type: V1ConfigMap },
   deployments: { api: api.getDeployments, type: V1Deployment },
   namespaces: { api: api.getNamespaces, type: V1Namespace },
@@ -124,7 +116,7 @@ const mapResource: ResourceMap = {
   services: { api: api.getServices, type: V1Service },
 }
 
-const selector = async (
+export const selector = async (
   resourceType: ResourceType,
   type: 'checkbox-plus' | 'list'
 ) => {
@@ -160,193 +152,6 @@ const selector = async (
   ])
 }
 
-// const logsStream = async (answer: Selection) => {
-//   console.clear()
-//   const choices: string[] = answer.selection as string[]
-//   if (choices.length > 0)
-//     choices.map((name: string) => {
-//       api
-//         .streamLog(name, RootStore.currentNamespace)
-//         .then((log: any) => console.log(log))
-//     })
-//   else {
-//     mainMenu()
-//   }
-// }
-
-export const colorStatus = (status?: string) => {
-  if (status === 'Running') {
-    return `${FgLightGreen}${status}${Reset}`
-  } else if (status === 'Succeeded') {
-    return `${FgGreen}${status}${Reset}`
-  } else if (
-    status === 'Failed' ||
-    status === 'Terminating' ||
-    status === 'Terminated'
-  ) {
-    return `${FgRed}${status}${Reset}`
-  }
-  return status || 'Unknown'
-}
-
-export const findState = (state: V1ContainerState) => {
-  if (state.running) {
-    return 'Running'
-  } else if (state.terminated) {
-    return 'Terminating'
-  } else if (state.waiting) {
-    return 'Waiting'
-  } else {
-    return 'Unknown'
-  }
-}
-
-const podStatuses = async (answer: Selection) => {
-  const data: any[] = []
-  const pods = (await api.getPods(RootStore.currentNamespace)).body.items.map(
-    (pod) => pod.metadata?.name!
-  )
-  await Promise.all(
-    pods.map(async (pod: string) => {
-      if (pod) {
-        data.push(await api.getPodStatus(pod!, RootStore.currentNamespace!))
-      }
-    })
-  )
-  const columns = columnify(data, {
-    minWidth: 20,
-    config: { name: { maxWidth: 30 } },
-  })
-  console.log(columns)
-  mainMenu()
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
-
-const waitForPodsTobeReady = async (pods: string[]) => {
-  await Promise.all(
-    pods.map(async (pod) => {
-      let state = await api
-        .getPodStatus(pod, RootStore.currentNamespace)
-        .catch((error) => 'Pending')
-      while (state !== 'Running') {
-        await sleep(refreshPeriod)
-        state = await api
-          .getPodStatus(pod, RootStore.currentNamespace)
-          .catch((error) => {
-            return 'Running'
-          })
-      }
-      return
-    })
-  )
-  return true
-}
-
-const liveReload = async () => {
-  const question = await selector('deployments', 'list')
-  const name = question.selection as string
-  let deployment = await api.getDeploymentDetails(
-    name,
-    RootStore.currentNamespace
-  )
-
-  // Retrieve existing pods and store for later reference.
-  let allPods = await api.getPods(RootStore.currentNamespace)
-  const originalPods = allPods.body.items
-    .filter((pod) =>
-      pod.metadata?.name?.includes(deployment?.metadata?.name || '')
-    )
-    .map((pod) => pod.metadata?.name)
-
-  // replica size and then Scale up deployment
-  let originalReplicas
-  if (deployment?.spec && deployment.spec?.replicas) {
-    originalReplicas = deployment.spec.replicas
-    const newReplicas = deployment.spec.replicas + 1
-    deployment = await api.setScaleDeployment(
-      name,
-      RootStore.currentNamespace,
-      newReplicas
-    )
-  }
-
-  console.log(originalPods)
-
-  if (originalReplicas) {
-    console.log('Scaled to ', deployment?.spec?.replicas)
-    // wait for deployments new pods to be ready
-    await sleep(gracePeriod)
-
-    allPods = await api.getPods(RootStore.currentNamespace)
-
-    const updatedPods = allPods.body.items
-      .filter((pod) =>
-        pod.metadata?.name?.includes(deployment?.metadata?.name || '')
-      )
-      .map((pod) => pod.metadata?.name || '')
-    const newPods = updatedPods.filter((pod) => !originalPods.includes(pod))
-
-    console.log('New Pods: ', newPods)
-
-    // wait for new pods to be ready
-    await waitForPodsTobeReady(newPods)
-    console.log('New Backup Pod Created...')
-
-    console.log('Deleteing Old Pods')
-    // delete old pods
-    await Promise.all(
-      originalPods.map(
-        async (pod) =>
-          await api.deleteResource(
-            'pods',
-            RootStore.currentNamespace,
-            pod || ''
-          )
-      )
-    )
-    console.log('Deleted old pods.')
-
-    await waitForPodsTobeReady(updatedPods)
-
-    allPods = await api.getPods(RootStore.currentNamespace)
-    const newUpdatedPods = allPods.body.items
-      .filter(
-        (pod) =>
-          pod.metadata?.name?.includes(deployment?.metadata?.name || '') &&
-          (pod.status?.phase === 'Pending' || pod.status?.phase === 'Running')
-      )
-      .map((pod) => pod.metadata?.name || '')
-
-    console.log('Waiting for pods to be ready...')
-
-    // wait for new pods to be ready
-    await waitForPodsTobeReady(newUpdatedPods)
-
-    await sleep(gracePeriod)
-
-    deployment = await api.getDeploymentDetails(
-      name,
-      RootStore.currentNamespace
-    )
-    console.log('Scaled to ', originalReplicas)
-    // scale back to original replica size
-    deployment! = await api.setScaleDeployment(
-      name,
-      RootStore.currentNamespace,
-      originalReplicas
-    )
-    console.log('Live Reload Done!')
-  } else {
-    console.log(`${question.selection} deployment has no replicas running`)
-  }
-  mainMenu()
-}
-
 const deleteResources = async (
   resourceType: ResourceType,
   resources: string[]
@@ -369,55 +174,6 @@ const deleteResources = async (
   mainMenu()
 }
 
-const logsConsole = async (answer: Selection) => {
-  const start = new Date().getTime()
-  RootStore.clearLogs()
-  const selection = answer.selection as string[]
-
-  await Promise.all(
-    selection.map(async (name: string) => {
-      const logs = await api.getLogs(name, RootStore.currentNamespace)
-      return logs?.map(async (matchedLine: RegExpExecArray | null) => {
-        if (matchedLine) {
-          RootStore.addLog({
-            podName: name,
-            timestamp: new Date(matchedLine[1]),
-            log: matchedLine[2],
-          })
-        }
-      })
-    })
-  )
-  RootStore.sortLogs()
-  const end = new Date().getTime() - start
-  let prevLogRecord: ILog | null = null
-  RootStore.currentLogs.forEach((log: ILog) => {
-    if (prevLogRecord) {
-      if (prevLogRecord.podName !== log.podName)
-        console.log(
-          `\n${FgYellow}[${log.podName}] ${FgGreen} ${
-            log.timestamp
-          }${Reset}\n${FgBlue}${log.timestamp.getHours()}:${log.timestamp.getMinutes()}:${log.timestamp.getSeconds()}.${log.timestamp.getMilliseconds()}${Reset}`,
-          log.log
-        )
-      else {
-        console.log(
-          `${FgBlue}${log.timestamp.getHours()}:${log.timestamp.getMinutes()}:${log.timestamp.getSeconds()}.${log.timestamp.getMilliseconds()}${Reset}`,
-          log.log
-        )
-      }
-    } else {
-      console.log(
-        `${FgBlue}${log.timestamp.getHours()}:${log.timestamp.getMinutes()}:${log.timestamp.getSeconds()}.${log.timestamp.getMilliseconds()}${Reset}`,
-        log.log
-      )
-    }
-    prevLogRecord = log
-  })
-  console.info('Merge time: %ds', end / 1000.0)
-  mainMenu()
-}
-
 const deleteResourceResponse = async (resourceType: ResourceType) => {
   console.log(
     `\n###########################\nDelete ${resourceType}\n###########################`
@@ -437,13 +193,13 @@ export const mainMenu = async () => {
       selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
         await logsConsole(answer)
       })
-      // } else if (answer.selection.includes('Log streamer')) {
-      //   console.log(
-      //     `\n###########################\nLog Streamer\n###########################`
-      //   )
-      //   selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
-      //     logsStream(answer)
-      //   })
+    } else if (answer.selection.includes('Log streamer')) {
+      console.log(
+        `\n###########################\nLog Streamer\n###########################`
+      )
+      selector('pods', 'checkbox-plus').then(async (answer: Selection) => {
+        logsStream(answer)
+      })
     } else if (answer.selection.includes('Live reload')) {
       liveReload()
     } else if (answer.selection.includes('Pod statuses')) {

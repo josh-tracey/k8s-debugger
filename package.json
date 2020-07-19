@@ -21,7 +21,8 @@
     "inquirer-checkbox-plus": "^1.0.2",
     "mobx": "^5.15.4",
     "mobx-state-tree": "^3.15.0",
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.3",
+    "stream-combiner": "^0.2.2"
   },
   "devDependencies": {
     "@types/columnify": "^1.5.0",
