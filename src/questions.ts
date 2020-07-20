@@ -185,7 +185,7 @@ const deleteResourceResponse = async (resourceType: ResourceType) => {
 
 export const mainMenu = async () => {
   rootMenu().then(async (answer: Selection) => {
-    console.clear()
+    
     if (answer.selection.includes('Log merger')) {
       console.log(
         `\n###########################\nLog Merger\n###########################`

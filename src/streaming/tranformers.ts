@@ -1,5 +1,5 @@
 import { Transform } from 'stream'
-import { FgBlue, FgYellow, Reset } from '../colors'
+import { FgBlue, FgRed, FgYellow, Reset } from '../colors'
 
 export class LogTagger extends Transform {
   private podName: string
@@ -20,7 +20,7 @@ export class LogGrouper extends Transform {
     let message: string | null = null
 
     if (!this.prevPodName || this.prevPodName !== podname) {
-      message = `${FgYellow}${podname} - ${FgBlue}${new Date().toLocaleString()}${Reset}\n${log}`
+      message = `${FgRed}[ ${FgYellow}${podname} ${Reset}- ${FgBlue}${new Date().toLocaleString()}${FgRed} ]${Reset}\n${log}`
       this.prevPodName = podname
     } else {
       message = log

@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Config loading, with multiple file specified in environment needs fixing.
 - Context switching needs proper error handling.
+- cluster certificates / current context in kube config needs to be updated in cache on context switching.
+
+## [0.7.0] - 2020-07-19
+
+### Added 
+
+- Live streaming of logs, with pod group tags for log groups.
+
+### Changed
+
+- Context switching now loads correctly, little hacky but works.
 
 ## [0.6.0] - 2020-07-17
 
