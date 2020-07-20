@@ -1,5 +1,5 @@
 {
-  "name": "@adriftgentleman/k8s-debugger",
+  "name": "@adriftdev/k8s-debugger",
   "version": "0.7.0",
   "description": "Kubernetes Debugger",
   "main": "./build/index.js",
