@@ -7,3 +7,5 @@ export declare type ResourceType =
   | 'secrets'
   | 'configMaps'
   | 'serviceAccounts'
+  | 'jobs'
+  | 'cronJobs'

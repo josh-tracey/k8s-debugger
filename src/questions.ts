@@ -7,6 +7,8 @@ import {
   V1ConfigMap,
   V1ServiceAccount,
   V1Secret,
+  V1Job,
+  V2alpha1CronJob,
 } from '@kubernetes/client-node'
 import api from './api'
 import RootStore from './store'
@@ -15,7 +17,7 @@ import { logsConsole } from './operations/logMerger'
 import { liveReload } from './operations/liveReload'
 import { podStatuses } from './operations/podStatues'
 import { logsStream } from './operations/logStreamer'
-
+import { getSecret } from './api/k8s/resources'
 interface Confirm {
   confirm: string
 }
@@ -86,12 +88,17 @@ const rootMenu = async (): Promise<Selection> => {
       'Log streamer',
       'Log merger',
       new inquirer.Separator('--Resource Management--'),
+      // 'Display configMaps',
+      'Display secrets',
+      new inquirer.Separator('--Resource Management--'),
       'Pod statuses',
       'Delete pods',
       'Delete deployments',
       'Delete services',
       'Delete configMaps',
       'Delete secrets',
+      'Delete cronjobs',
+      'Delete jobs',
       'Delete service accounts',
       new inquirer.Separator('--Other--'),
       'Change namespace',
@@ -114,12 +121,14 @@ export const mapResource: ResourceMap = {
   secrets: { api: api.getSecrets, type: V1Secret },
   serviceAccounts: { api: api.getServiceAccounts, type: V1ServiceAccount },
   services: { api: api.getServices, type: V1Service },
+  jobs: { api: api.getJobs, type: V1Job },
+  cronJobs: { api: api.getCronJobs, type: V2alpha1CronJob },
 }
 
 export const selector = async (
   resourceType: ResourceType,
   type: 'checkbox-plus' | 'list'
-) => {
+): Promise<{ selection: string[] | string }> => {
   const response = (
     await mapResource[resourceType].api(RootStore.currentNamespace)
   ).body
@@ -150,6 +159,23 @@ export const selector = async (
       type: type,
     },
   ])
+}
+
+const displaySecrets = async () => {
+  const secrets = (await (await selector('secrets', 'checkbox-plus'))
+    .selection) as string[]
+  const secretDetails = await Promise.all(
+    secrets.map(async (secret: string) => {
+      const secretResource = await getSecret(secret, RootStore.currentNamespace)
+      return {
+        type: secretResource.type,
+        data: secretResource.data,
+        meta: secretResource.metadata,
+      }
+    })
+  )
+  console.log(JSON.stringify(secretDetails, null, ' '))
+  mainMenu()
 }
 
 const deleteResources = async (
@@ -203,6 +229,8 @@ export const mainMenu = async () => {
       liveReload()
     } else if (answer.selection.includes('Pod statuses')) {
       await podStatuses(answer)
+    } else if (answer.selection.includes('Display secrets')) {
+      displaySecrets()
     } else if (answer.selection.includes('Delete pods')) {
       deleteResourceResponse('pods')
     } else if (answer.selection.includes('Delete deployments')) {
@@ -215,6 +243,10 @@ export const mainMenu = async () => {
       deleteResourceResponse('configMaps')
     } else if (answer.selection.includes('Delete service account')) {
       deleteResourceResponse('serviceAccounts')
+    } else if (answer.selection.includes('Delete cronjobs')) {
+      deleteResourceResponse('cronJobs')
+    } else if (answer.selection.includes('Delete jobs')) {
+      deleteResourceResponse('jobs')
     } else if (answer.selection.includes('Change context')) {
       console.log(
         `\n###########################\nChange Context\n###########################`

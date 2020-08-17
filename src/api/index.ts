@@ -1,4 +1,3 @@
-
 import {
   deleteResource,
   getAllDeployments,
@@ -15,6 +14,8 @@ import {
   getServices,
   setScaleDeployment,
   setNamespace,
+  getCronJobs,
+  getJobs,
 } from './k8s/resources'
 import { getContexts, getCurrentContext, setContext } from './k8s'
 import { getPodStatus } from './k8s/resources'
@@ -39,4 +40,6 @@ export default {
   setNamespace,
   setScaleDeployment,
   streamLog,
+  getCronJobs,
+  getJobs,
 }

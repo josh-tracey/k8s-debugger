@@ -1,7 +1,7 @@
 import { k8sCore, k8sApps } from '.'
 import { ResourceType } from '../../types'
 import { colorStatus, findState } from '../../helpers'
-import { k8sLogs } from './index'
+import { k8sLogs, k8sBatchV1, k8sBatchV2 } from './index'
 import { Transform } from 'stream'
 
 export let namespace: string | undefined = 'default'
@@ -94,6 +94,22 @@ export const getConfigMaps = (namespace: string) => {
 
 export const getServiceAccounts = (namespace: string) => {
   return k8sCore.listNamespacedServiceAccount(namespace)
+}
+
+export const getJobs = (namespace: string) => {
+  return k8sBatchV1.listNamespacedJob(namespace)
+}
+
+export const getCronJobs = (namespace: string) => {
+  return k8sBatchV2.listNamespacedCronJob(namespace)
+}
+
+export const getSecret = async (name: string, namespace: string) => {
+  return (await k8sCore.readNamespacedSecret(name, namespace)).body
+}
+
+export const getConfigmap = async (name: string, namespace: string) => {
+  return (await k8sCore.readNamespacedConfigMap(name, namespace)).body
 }
 
 export const getPodStatus = async (pod: string, namespace: string) => {
