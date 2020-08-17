@@ -18,7 +18,6 @@ export const k8sCore = kc.makeApiClient(k8s.CoreV1Api)
 
 export const k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
-
 export const getCurrentContext = () => kc.getCurrentContext()
 
 export const getContexts = () =>
@@ -30,6 +29,12 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
+  const caCert = Buffer.from(
+    kc.getCurrentCluster()?.caData!,
+    'base64'
+  ).toLocaleString()
+  kc.applytoHTTPSOptions({ ca: caCert})
+  kc.exportConfig()
   shell.exec(`kubectl config use-context ${context}`)
   shell.exec('kubectl get nodes', { silent: true })
 }

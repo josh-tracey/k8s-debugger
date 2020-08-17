@@ -45,16 +45,12 @@ export const setScaleDeployment = async (
   namespace: string,
   replicas: number
 ) => {
-  const res = await k8sApps.readNamespacedDeployment(name, namespace)
-
-  let deployment = res.body
-
-  deployment.spec!.replicas = replicas
-
   try {
     return await k8sApps
-      //@ts-ignore
-      .replaceNamespacedDeploymentScale(name, namespace, deployment)
+      .replaceNamespacedDeploymentScale(name, namespace, {
+        spec: { replicas },
+        metadata: { name, namespace },
+      })
       .then((response) => response)
       .catch((error) => {
         console.log(error)

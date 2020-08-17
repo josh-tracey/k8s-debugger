@@ -17,7 +17,7 @@ import { logsConsole } from './operations/logMerger'
 import { liveReload } from './operations/liveReload'
 import { podStatuses } from './operations/podStatues'
 import { logsStream } from './operations/logStreamer'
-import { getSecret } from './api/k8s/resources'
+import { getSecret, setScaleDeployment } from './api/k8s/resources'
 interface Confirm {
   confirm: string
 }
@@ -84,14 +84,15 @@ const rootMenu = async (): Promise<Selection> => {
     choices: [
       new inquirer.Separator('--Experimental--'),
       'Live reload',
+      'Scaler',
       new inquirer.Separator('--Logging--'),
       'Log streamer',
       'Log merger',
-      new inquirer.Separator('--Resource Management--'),
+      new inquirer.Separator('--Display--'),
       // 'Display configMaps',
+      'Pod statuses',
       'Display secrets',
       new inquirer.Separator('--Resource Management--'),
-      'Pod statuses',
       'Delete pods',
       'Delete deployments',
       'Delete services',
@@ -168,13 +169,46 @@ const displaySecrets = async () => {
     secrets.map(async (secret: string) => {
       const secretResource = await getSecret(secret, RootStore.currentNamespace)
       return {
-        type: secretResource.type,
-        data: secretResource.data,
-        meta: secretResource.metadata,
+        [secretResource.metadata?.name!]: Object.keys(secretResource.data!).map(
+          (key) => {
+            return {
+              [key]: Buffer.from(
+                secretResource.data![key],
+                'base64'
+              ).toLocaleString(),
+            }
+          }
+        ),
       }
     })
   )
   console.log(JSON.stringify(secretDetails, null, ' '))
+  mainMenu()
+}
+
+const scaler = async () => {
+  const deployments = (await (await selector('deployments', 'checkbox-plus'))
+    .selection) as string[]
+
+  await inquirer
+    .prompt({
+      type: 'number',
+      name: 'scale',
+    })
+    .then(async (answer: { scale: number }) => {
+      await Promise.all(
+        deployments.map(async (deployment: string) => {
+          await setScaleDeployment(
+            deployment,
+            RootStore.currentNamespace,
+            answer.scale
+          )
+          console.log(`Scaled ${deployment} to ${answer.scale} pods`)
+          return
+        })
+      )
+    })
+
   mainMenu()
 }
 
@@ -227,6 +261,8 @@ export const mainMenu = async () => {
       })
     } else if (answer.selection.includes('Live reload')) {
       liveReload()
+    } else if (answer.selection.includes('Scaler')) {
+      await scaler()
     } else if (answer.selection.includes('Pod statuses')) {
       await podStatuses(answer)
     } else if (answer.selection.includes('Display secrets')) {
