@@ -1,6 +1,5 @@
 import * as k8s from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
-import * as shell from 'shelljs'
 
 export const kc = new k8s.KubeConfig()
 
@@ -20,7 +19,7 @@ export let k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
 export const getCurrentContext = () => kc.getCurrentContext()
 
-const reinitApis = ()=>{
+const reinitApis = () => {
   k8sBatchV2 = kc.makeApiClient(k8s.BatchV2alpha1Api)
   k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
   k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
@@ -38,7 +37,7 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
-  shell.exec(`kubectl config use-context ${context}`)
-  shell.exec('kubectl get nodes', { silent: true })
+  // shell.exec(`kubectl config use-context ${context}`)
+  // shell.exec('kubectl get nodes', { silent: true })
   reinitApis()
 }
