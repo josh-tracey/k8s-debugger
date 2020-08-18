@@ -83,7 +83,7 @@ const rootMenu = async (): Promise<Selection> => {
     pageSize: defaultPageSize,
     choices: [
       new inquirer.Separator('--Experimental--'),
-      'Live reload',
+      // 'Live reload',
       'Scaler',
       new inquirer.Separator('--Logging--'),
       'Log streamer',
