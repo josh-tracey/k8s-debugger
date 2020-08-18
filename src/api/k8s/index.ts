@@ -6,19 +6,28 @@ export const kc = new k8s.KubeConfig()
 
 kc.loadFromDefault()
 
-export const k8sLogs = new k8s.Log(kc)
+export let k8sLogs = new k8s.Log(kc)
 
-export const k8sBatchV2 = kc.makeApiClient(k8s.BatchV2alpha1Api)
+export let k8sBatchV2 = kc.makeApiClient(k8s.BatchV2alpha1Api)
 
-export const k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
+export let k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
 
-export const k8sCustomApp = kc.makeApiClient(k8s.ApiextensionsV1Api)
+export let k8sCustomApp = kc.makeApiClient(k8s.ApiextensionsV1Api)
 
-export const k8sCore = kc.makeApiClient(k8s.CoreV1Api)
+export let k8sCore = kc.makeApiClient(k8s.CoreV1Api)
 
-export const k8sApps = kc.makeApiClient(k8s.AppsV1Api)
+export let k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
 export const getCurrentContext = () => kc.getCurrentContext()
+
+const reinitApis = ()=>{
+  k8sBatchV2 = kc.makeApiClient(k8s.BatchV2alpha1Api)
+  k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
+  k8sBatchV1 = kc.makeApiClient(k8s.BatchV1Api)
+  k8sCustomApp = kc.makeApiClient(k8s.ApiextensionsV1Api)
+  k8sCore = kc.makeApiClient(k8s.CoreV1Api)
+  k8sApps = kc.makeApiClient(k8s.AppsV1Api)
+}
 
 export const getContexts = () =>
   kc.getContexts().map((context: Context) => ({
@@ -29,12 +38,7 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
-  const caCert = Buffer.from(
-    kc.getCurrentCluster()?.caData!,
-    'base64'
-  ).toLocaleString()
-  kc.applytoHTTPSOptions({ ca: caCert})
-  kc.exportConfig()
   shell.exec(`kubectl config use-context ${context}`)
   shell.exec('kubectl get nodes', { silent: true })
+  reinitApis()
 }
