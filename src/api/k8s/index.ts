@@ -37,7 +37,5 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
-  // shell.exec(`kubectl config use-context ${context}`)
-  // shell.exec('kubectl get nodes', { silent: true })
   reinitApis()
 }
