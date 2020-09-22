@@ -1,5 +1,6 @@
 import * as k8s from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
+import * as shelljs from "shelljs"
 
 export const kc = new k8s.KubeConfig()
 
@@ -37,5 +38,6 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
+  shelljs.exec(`kubectl config use-context ${context}`)
   reinitApis()
 }
