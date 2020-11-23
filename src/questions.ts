@@ -18,36 +18,57 @@ import { liveReload } from './operations/liveReload'
 import { podStatuses } from './operations/podStatues'
 import { logsStream } from './operations/logStreamer'
 import { getSecret, setScaleDeployment } from './api/k8s/resources'
+import * as querystring from 'querystring'
+
 interface Confirm {
   confirm: string
 }
 
 inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus'))
 
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
+
 export interface Selection {
   selection: string | string[]
 }
 
+export const searchInqurerItemArray = (entries: Array<{ name: string }>) => (
+  answer: any,
+  input: string
+) =>
+  Promise.resolve(
+    entries.filter((x) =>
+      x.name.toLowerCase().includes((input || '').toLowerCase())
+    )
+  )
+
 const defaultPageSize = 15
 
 const getTargetContext = async () => {
+  const environments = api.getContexts()
   return (
-    await inquirer.prompt<{ answer: string }>({
-      type: 'list',
-      name: 'answer',
-      choices: api.getContexts().map((x) => ({
-        name: x.name,
-        value: x.name,
-      })),
+    await inquirer.prompt<any>({
+      // @ts-ignore
+      type: 'autocomplete',
+      name: 'environment',
+      source: searchInqurerItemArray(
+        environments.map((env) => ({
+          name: querystring.unescape(env.name),
+          value: {
+            ...env,
+            name: querystring.unescape(env.name),
+          },
+        }))
+      ),
       message: 'Choose k8s context: ',
     })
-  ).answer
+  ).environment
 }
 
 export const contextSwitcher = async () => {
   const context = await getTargetContext()
 
-  if (context.includes('prod')) {
+  if (context.name.includes('prod')) {
     const answer = await inquirer.prompt<Confirm>({
       type: 'input',
       name: 'confirm',
@@ -56,10 +77,10 @@ export const contextSwitcher = async () => {
     })
 
     if (['y', 'Y', 'Yes', 'yes'].includes(answer.confirm)) {
-      RootStore.setContext(context)
+      RootStore.setContext(context.name)
     }
   } else {
-    RootStore.setContext(context)
+    RootStore.setContext(context.name)
   }
   console.clear()
 }
@@ -78,35 +99,52 @@ const rootMenu = async (): Promise<Selection> => {
   console.log(
     `-----------${RootStore.currentContext}-[${RootStore.currentNamespace}]-------------`
   )
+
+  const options = [
+    new inquirer.Separator('--Experimental--'),
+    // 'Live reload',
+    'Scaler',
+    new inquirer.Separator('--Logging--'),
+    'Log streamer',
+    'Log merger',
+    new inquirer.Separator('--Display--'),
+    // 'Display configMaps',
+    'Pod statuses',
+    'Display secrets',
+    new inquirer.Separator('--Resource Management--'),
+    'Delete pods',
+    'Delete deployments',
+    'Delete services',
+    'Delete configMaps',
+    'Delete secrets',
+    'Delete cronjobs',
+    'Delete jobs',
+    'Delete service accounts',
+    new inquirer.Separator('--Other--'),
+    'Change namespace',
+    'Change context',
+    'Exit',
+  ]
   return inquirer.prompt<Selection>({
     name: 'selection',
-    pageSize: defaultPageSize,
-    choices: [
-      new inquirer.Separator('--Experimental--'),
-      // 'Live reload',
-      'Scaler',
-      new inquirer.Separator('--Logging--'),
-      'Log streamer',
-      'Log merger',
-      new inquirer.Separator('--Display--'),
-      // 'Display configMaps',
-      'Pod statuses',
-      'Display secrets',
-      new inquirer.Separator('--Resource Management--'),
-      'Delete pods',
-      'Delete deployments',
-      'Delete services',
-      'Delete configMaps',
-      'Delete secrets',
-      'Delete cronjobs',
-      'Delete jobs',
-      'Delete service accounts',
-      new inquirer.Separator('--Other--'),
-      'Change namespace',
-      'Change context',
-      'Exit',
-    ],
-    type: 'list',
+    pageSize: 25,
+    choices: options,
+    // @ts-ignore
+    type: 'autocomplete',
+    source: function (_: any, input: string) {
+      input = (input || '').toLocaleLowerCase()
+
+      if (input) {
+        return new Promise(function (resolve) {
+          let data = options.filter(
+            (item: any) => typeof item === 'string' && item.toLocaleLowerCase().includes(input)
+          )
+
+          resolve(data)
+        })
+      }
+      return options
+    },
   })
 }
 
@@ -128,7 +166,7 @@ export const mapResource: ResourceMap = {
 
 export const selector = async (
   resourceType: ResourceType,
-  type: 'checkbox-plus' | 'list'
+  type: 'checkbox-plus' | 'autocomplete'
 ): Promise<{ selection: string[] | string }> => {
   const response = (
     await mapResource[resourceType].api(RootStore.currentNamespace)
@@ -294,9 +332,11 @@ export const mainMenu = async () => {
       console.log(
         `\n###########################\nChange Namespace\n###########################`
       )
-      await selector('namespaces', 'list').then(async (answer: Selection) => {
-        RootStore.setNamespace(answer.selection as string)
-      })
+      await selector('namespaces', 'autocomplete').then(
+        async (answer: Selection) => {
+          RootStore.setNamespace(answer.selection as string)
+        }
+      )
       console.clear()
       await mainMenu()
     } else if (answer.selection.includes('Exit')) {

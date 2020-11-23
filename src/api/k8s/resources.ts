@@ -190,6 +190,11 @@ export const streamLog = async (
   )
 }
 
+export const showPodDetails = async (namespace: string, name: string) => {
+  const pod = await k8sCore.readNamespacedPod(name, namespace)
+  return pod.body
+}
+
 export const deleteResource = (
   resourceType: ResourceType,
   namespace: string,

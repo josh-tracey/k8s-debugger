@@ -25,7 +25,7 @@ export const waitForPodsToBeReady = async (pods: string[]) => {
 }
 
 export const liveReload = async () => {
-  const question = await selector('deployments', 'list')
+  const question = await selector('deployments', 'autocomplete')
   const name = question.selection as string
   let deployment = await api.getDeploymentDetails(
     name,
