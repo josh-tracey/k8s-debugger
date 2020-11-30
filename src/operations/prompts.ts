@@ -1,10 +1,10 @@
 import * as inquirer from 'inquirer'
 import RootStore from '../store'
 import { ResourceType } from '../types'
-import { mainMenu, Selection } from '../questions'
+import { Selection } from '../questions'
 import { defaultPageSize } from '../config'
 import api from '../api'
-import { mapResource } from './helpers';
+import { mapResource } from './helpers'
 
 export interface Confirm {
   confirm: string
@@ -65,7 +65,7 @@ export const deleteResources = async (
   if (RootStore.currentContext?.match(/prod/)) {
     console.log('To be deleted: ', resources)
     await prodConfirm().then((answer: Confirm) => {
-      if (!['Yes'].includes(answer.confirm)) confirmed = false
+      if (!['y', 'Y', 'Yes', 'yes'].includes(answer.confirm)) confirmed = false
     })
   }
 
@@ -75,14 +75,15 @@ export const deleteResources = async (
     })
     console.log('Deleted: ', resources)
   }
-  mainMenu()
 }
 
 export const deleteResourceResponse = async (resourceType: ResourceType) => {
   console.log(
     `\n###########################\nDelete ${resourceType}\n###########################`
   )
-  selector(resourceType, 'checkbox-plus').then(async (answer: Selection) => {
-    await deleteResources(resourceType, answer.selection as string[])
-  })
+  await selector(resourceType, 'checkbox-plus').then(
+    async (answer: Selection) => {
+      await deleteResources(resourceType, answer.selection as string[])
+    }
+  )
 }

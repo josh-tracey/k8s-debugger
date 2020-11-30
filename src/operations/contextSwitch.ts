@@ -28,6 +28,7 @@ const getTargetContext = async () => {
 }
 
 const ContextSwitcher: IOperation = {
+  label: 'Change Context',
   execute: async () => {
     const context = await getTargetContext()
 
@@ -47,7 +48,6 @@ const ContextSwitcher: IOperation = {
     }
     console.clear()
   },
-  label: 'Change Context',
 }
 
 export default ContextSwitcher
