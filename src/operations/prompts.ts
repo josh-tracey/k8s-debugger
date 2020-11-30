@@ -1,7 +1,7 @@
 import * as inquirer from 'inquirer'
 import RootStore from '../store'
 import { ResourceType } from '../types'
-import { Selection } from '../questions'
+import { Selection } from '../mainMenu'
 import { defaultPageSize } from '../config'
 import api from '../api'
 import { mapResource } from './helpers'

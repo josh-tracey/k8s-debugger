@@ -2,7 +2,7 @@ import RootStore from '../store'
 import * as inquirer from 'inquirer'
 import { Confirm } from './prompts'
 import api from '../api'
-import { searchInqurerItemArray } from '../questions'
+import { searchInqurerItemArray } from '../mainMenu'
 import * as querystring from 'querystring'
 import { IOperation } from './interface'
 

@@ -1,5 +1,5 @@
 import api from '../api'
-import { mainMenu } from '../questions'
+import { mainMenu } from '../mainMenu'
 import RootStore from '../store'
 import { stdout } from 'process'
 import { LogGrouper, LogTagger } from '../streaming/tranformers'
