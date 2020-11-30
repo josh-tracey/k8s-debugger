@@ -1,15 +1,12 @@
 #!node
-import { mainMenu, contextSwitcher } from './questions'
+import { mainMenu } from './questions'
 // import { showPodDetails } from './api/k8s/resources'
+import ContextSwitcher from './operations/contextSwitch'
 
 const run = async () => {
   console.clear()
-  await contextSwitcher()
+  await ContextSwitcher.execute()
   await mainMenu()
 }
 
 run()
-
-// showPodDetails('default', 'core-kernel-5ff4566b67-8tkkf').then((pod) =>
-//   console.log(JSON.stringify(pod, null, " "))
-// )

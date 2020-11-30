@@ -177,17 +177,18 @@ export const streamLog = async (
 ) => {
   const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
-  const container = pod.body.spec?.containers[0]
-  k8sLogs.log(
-    namespace,
-    podName,
-    container?.name || '',
-    writer,
-    (err: any) => {
-      console.log(err)
-    },
-    { follow: true, sinceSeconds: 60, timestamps: true }
-  )
+  pod.body.spec?.containers.forEach((container) => {
+    k8sLogs.log(
+      namespace,
+      podName,
+      container?.name || '',
+      writer,
+      (err: any) => {
+        console.log(err)
+      },
+      { follow: true, sinceSeconds: 60, timestamps: true }
+    )
+  })
 }
 
 export const showPodDetails = async (namespace: string, name: string) => {
