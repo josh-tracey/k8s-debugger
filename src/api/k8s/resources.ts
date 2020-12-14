@@ -196,6 +196,32 @@ export const showPodDetails = async (namespace: string, name: string) => {
   return pod.body
 }
 
+export const configMapExists = async (name: string, namespace: string) => {
+  const configMaps = await k8sCore.listNamespacedConfigMap(namespace)
+  return !!configMaps.body.items.find((configmap) => configmap.metadata?.name === name)
+}
+
+export const createConfigmap = async (
+  name: string,
+  namespace: string,
+  data: { [name: string]: string }
+) => {
+  await k8sCore.createNamespacedConfigMap(namespace, {
+    data,
+    metadata: { name },
+  })
+}
+
+export const updateConfigmap = async (
+  name: string,
+  namespace: string,
+  data: { [name: string]: string }
+) => {
+  await k8sCore.patchNamespacedConfigMap(name, namespace, {
+    data,
+  })
+}
+
 export const deleteResource = (
   resourceType: ResourceType,
   namespace: string,

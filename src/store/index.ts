@@ -10,7 +10,7 @@ export const Log = types.model({
 const RootModel = types
   .model({
     currentNamespace: types.string,
-    currentContext: types.maybeNull(types.string),
+    currentContext: types.maybe(types.string),
     currentLogs: types.array(Log),
   })
   .actions((self) => ({
