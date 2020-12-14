@@ -4,7 +4,7 @@ import LogStreamer from './operations/logStreamer'
 import DeployConfig from './operations/deployConfig'
 import DumpConfig from './operations/dumpConfig'
 import DisplaySecrets from './operations/displaySecrets'
-import { configDirectoryExists, isOperation } from './operations/helpers'
+import { isOperation } from './operations/helpers'
 import DeletePods from './operations/deletePods'
 import Scaler from './operations/deploymentScaler'
 import DisplayConfigmaps from './operations/displayConfigmaps'
@@ -43,7 +43,8 @@ export const mainMenu = async () => {
     ...(experimentalEnabled
       ? [
           new inquirer.Separator('--Experimental--'),
-          ...(configDirectoryExists() ? [DeployConfig, DumpConfig] : []),
+          DeployConfig,
+          DumpConfig,
           LiveReload,
         ]
       : []),

@@ -10,7 +10,6 @@ const DumpConfig: IOperation = {
     const configRepo = getRepository(Config)
     const configMaps = (await getConfigMaps(RootStore.currentNamespace)).body
       .items
-    console.log(JSON.stringify(configMaps))
     await Promise.all(
       configMaps.map(async (configMap) => {
         if (configMap?.data) {
@@ -21,6 +20,7 @@ const DumpConfig: IOperation = {
               let config
 
               config = await configRepo.findOne({
+                fileName,
                 configMap: configmapName,
                 namespace: RootStore.currentNamespace,
                 context: RootStore.currentContext,
@@ -30,7 +30,7 @@ const DumpConfig: IOperation = {
                 config = configRepo.create({
                   configMap: configmapName,
                   fileName,
-                  data: configMap.data![fileName],  
+                  data: configMap.data![fileName],
                   context: RootStore.currentContext,
                   namespace: RootStore.currentNamespace,
                   createdAt: configMap.metadata?.creationTimestamp?.toISOString(),
@@ -45,7 +45,6 @@ const DumpConfig: IOperation = {
         }
       })
     )
-
     console.log('Dumped configs locally')
   },
 }

@@ -38,8 +38,7 @@ const DeployConfig: IOperation = {
             }
             return acc
           }, {})
-
-          if (configMapExists(config, RootStore.currentNamespace)) {
+          if (await configMapExists(config, RootStore.currentNamespace)) {
             await updateConfigmap(config, RootStore.currentNamespace, data)
           } else {
             await createConfigmap(config, RootStore.currentNamespace, data)
