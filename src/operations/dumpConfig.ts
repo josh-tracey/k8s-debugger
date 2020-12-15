@@ -45,6 +45,7 @@ const DumpConfig: IOperation = {
         }
       })
     )
+    console.clear()
     console.log('Dumped configs locally')
   },
 }

@@ -47,7 +47,7 @@ const DeployConfig: IOperation = {
       )
     }
 
-    // console.clear()
+    console.clear()
   },
 }
 
