@@ -43,11 +43,12 @@ export const mainMenu = async () => {
     ...(experimentalEnabled
       ? [
           new inquirer.Separator('--Experimental--'),
-          DeployConfig,
-          DumpConfig,
           LiveReload,
         ]
       : []),
+    new inquirer.Separator('--Configmap Management--'),
+    DeployConfig,
+    DumpConfig,
     new inquirer.Separator('--Logging--'),
     LogMerger,
     LogStreamer,
