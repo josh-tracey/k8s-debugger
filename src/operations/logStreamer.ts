@@ -6,10 +6,11 @@ import { LogGrouper, LogTagger } from '../streaming/tranformers'
 import { IOperation } from './interface'
 import { selector } from './prompts'
 
-const LogGrouping = new LogGrouper()
+
 
 const LogStreamer: IOperation = {
   execute: async () => {
+    const LogGrouping = new LogGrouper()
     console.clear()
     const choices: string[] = (await selector('pods', 'checkbox-plus'))
       .selection as string[]
@@ -17,16 +18,25 @@ const LogStreamer: IOperation = {
     LogGrouping.pipe(stdout)
 
     if (choices.length > 0) {
-      const tagStreams = choices.map((name: string) => {
+      const tagStreams = await Promise.all(choices.map(async (name: string) => {
         const LogTagging = new LogTagger(name)
-        api.streamLog(name, RootStore.currentNamespace, LogTagging)
+        await api.streamLog(name, RootStore.currentNamespace, LogTagging)
         return LogTagging
-      })
-      tagStreams.forEach((tagStream) => tagStream.pipe(LogGrouping))
+      }))
+      await Promise.all(tagStreams.map(async(tagStream) => {
+        tagStream.pipe(LogGrouping)
+
+        await new Promise(done=> {
+          LogGrouping.on("end", done)
+          tagStream.on("finish", done)
+        })
+      }))
+
     } else {
       console.clear()
       mainMenu()
     }
+
   },
   label: 'Log Streamer',
 }
