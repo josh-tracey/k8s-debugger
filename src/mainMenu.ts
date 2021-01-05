@@ -15,6 +15,7 @@ import LogMerger from './operations/logMerger'
 import NamespaceSwitcher from './operations/namespaceSwitcher'
 import ContextSwitcher from './operations/contextSwitch'
 import LiveReload from './operations/liveReload'
+import DeleteDeployment from './operations/deleteDeployments'
 
 inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus'))
 
@@ -44,17 +45,17 @@ export const mainMenu = async () => {
       ? [
           new inquirer.Separator('--Experimental--'),
           LiveReload,
+          DeployConfig,
+          DumpConfig,
         ]
       : []),
-    new inquirer.Separator('--Configmap Management--'),
-    DeployConfig,
-    DumpConfig,
     new inquirer.Separator('--Logging--'),
     LogMerger,
     LogStreamer,
     new inquirer.Separator('--Resource Management--'),
     Scaler,
     DeletePods,
+    DeleteDeployment,
     new inquirer.Separator('--Displays--'),
     DisplayConfigmaps,
     PodStatuses,
