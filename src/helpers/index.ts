@@ -1,6 +1,6 @@
 import * as path from 'path'
 import * as fs from 'fs'
-import { IOperation } from './interface'
+import { IOperation } from '../operations/interface'
 import Separator = require('inquirer/lib/objects/separator')
 import api from '../api'
 import {

@@ -1,7 +1,7 @@
 const homedir = require('os').homedir();
 var path = require('path');
 
-var databasePath = path.join(homedir, '.local/k8s-debugger.sqlite' );
+var databasePath = path.join(homedir, '.config/k8s-debugger.sqlite' );
 
 module.exports = {
   type: 'sqlite',

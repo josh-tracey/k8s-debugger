@@ -1,5 +1,5 @@
 import RootStore from '../store'
-import { selector } from './prompts'
+import { selector } from '../helpers/prompts'
 import { IOperation } from './interface'
 
 const NamespaceSwitcher: IOperation = {

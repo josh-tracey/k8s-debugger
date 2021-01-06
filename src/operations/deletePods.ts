@@ -1,5 +1,5 @@
 import { IOperation } from './interface'
-import { deleteResourceResponse } from './prompts'
+import { deleteResourceResponse } from '../helpers/prompts'
 
 const DeletePods: IOperation = {
   execute: async () => await deleteResourceResponse('pods'),

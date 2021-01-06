@@ -30,3 +30,19 @@ export class LogGrouper extends Transform {
     }
   }
 }
+
+export class Tranformer extends Transform {
+  private scanFunction: (chunk: Buffer) => void
+  constructor(func: (chunk: Buffer) => void) {
+    super()
+    this.scanFunction = func
+  }
+  public _transform = (chunk: Buffer, _: any, next: any) => {
+    this.scanFunction(chunk)
+    next(null)
+  }
+}
+
+export const printer = new Tranformer((chunk) => {
+  console.log(chunk.toLocaleString())
+})

@@ -1,6 +1,6 @@
 import RootStore from '../store'
 import * as inquirer from 'inquirer'
-import { Confirm } from './prompts'
+import { Confirm } from '../helpers/prompts'
 import api from '../api'
 import { searchInqurerItemArray } from '../mainMenu'
 import * as querystring from 'querystring'

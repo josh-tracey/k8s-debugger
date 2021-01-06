@@ -4,7 +4,7 @@ import { ResourceType } from '../types'
 import { Selection } from '../mainMenu'
 import { defaultPageSize } from '../config'
 import api from '../api'
-import { mapResource } from './helpers'
+import { mapResource } from './index'
 
 export interface Confirm {
   confirm: string

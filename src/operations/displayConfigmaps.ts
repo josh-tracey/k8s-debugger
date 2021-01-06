@@ -2,7 +2,7 @@
 import { getConfigmap } from '../api/k8s/resources'
 import RootStore from '../store'
 import { IOperation } from './interface'
-import { selector } from './prompts';
+import { selector } from '../helpers/prompts';
 
 const DisplayConfigmaps: IOperation = {
   execute: async () => {

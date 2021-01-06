@@ -3,7 +3,7 @@ import { ILog } from '../store/index'
 import { FgBlue, FgGreen, FgYellow, Reset } from '../colors'
 import api from '../api'
 import { IOperation } from './interface'
-import { selector } from './prompts'
+import { selector } from '../helpers/prompts'
 
 const LogMerger: IOperation = {
   execute: async () => {

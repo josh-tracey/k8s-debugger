@@ -1,7 +1,7 @@
 import { IOperation } from './interface'
 import { getSecret } from '../api/k8s/resources'
 import RootStore from '../store'
-import { selector } from './prompts';
+import { selector } from '../helpers/prompts';
 
 const DisplaySecrets: IOperation = {
   execute: async () => {

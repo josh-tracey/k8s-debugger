@@ -4,7 +4,7 @@ import RootStore from '../store'
 import { stdout } from 'process'
 import { LogGrouper, LogTagger } from '../streaming/tranformers'
 import { IOperation } from './interface'
-import { selector } from './prompts'
+import { selector } from '../helpers/prompts'
 
 
 

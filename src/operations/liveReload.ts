@@ -2,7 +2,7 @@ import api from '../api'
 import RootStore from '../store'
 import { sleep } from '../helpers'
 import { refreshPeriod, gracePeriod } from '../config'
-import { selector } from './prompts'
+import { selector } from '../helpers/prompts'
 import { IOperation } from './interface'
 
 const LiveReload: IOperation = {

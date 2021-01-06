@@ -2,7 +2,7 @@ import { IOperation } from './interface'
 import * as inquirer from 'inquirer'
 import RootStore from '../store'
 import { setScaleDeployment } from '../api/k8s/resources'
-import { selector } from './prompts'
+import { selector } from '../helpers/prompts'
 
 const Scaler: IOperation = {
   execute: async () => {
