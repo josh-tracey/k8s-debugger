@@ -16,6 +16,7 @@ import NamespaceSwitcher from './operations/namespaceSwitcher'
 import ContextSwitcher from './operations/contextSwitch'
 import LiveReload from './operations/liveReload'
 import DeleteDeployment from './operations/deleteDeployments'
+import DeleteConfigmaps from './operations/deleteConfigmaps'
 
 inquirer.registerPrompt('checkbox-plus', require('inquirer-checkbox-plus'))
 
@@ -59,6 +60,7 @@ export const mainMenu = async () => {
     Scaler,
     DeletePods,
     DeleteDeployment,
+    DeleteConfigmaps,
     new inquirer.Separator('--Other--'),
     ContextSwitcher,
     NamespaceSwitcher,
