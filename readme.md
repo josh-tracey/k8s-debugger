@@ -12,7 +12,6 @@ Console debug tool for kubernetes
 - Merged logs of multi pods
 - Log Streaming
 - Easy Context and namespace selection
-- Live Reloading
 - Pod Status View
 
 ### Planned Features 
@@ -23,6 +22,7 @@ Console debug tool for kubernetes
 - Redis Event Listening for critical logs
 - Resource Status Reports
 - Ingress Resource Support
+- Live Reloading
 
 ## Installation
 
