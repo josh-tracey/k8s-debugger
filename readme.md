@@ -27,7 +27,7 @@ Console debug tool for kubernetes
 ## Installation
 
 ```
-yarn global add @adriftgentleman/k8s-debugger
+yarn global add @adriftdev/k8s-debugger
 ```
 
 ## Usage
