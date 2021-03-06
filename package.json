@@ -1,6 +1,6 @@
 {
   "name": "@adriftdev/k8s-debugger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kubernetes Debugger",
   "main": "./build/index.js",
   "author": "Joshua Tracey <joshua.tracey08@gmail.com>",
