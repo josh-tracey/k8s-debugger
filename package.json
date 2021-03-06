@@ -4,7 +4,7 @@
   "description": "Kubernetes Debugger",
   "main": "./build/index.js",
   "author": "Joshua Tracey <joshua.tracey08@gmail.com>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "rm -rf ./build && yarn tsc",
     "start": "node ./build/index.js",
