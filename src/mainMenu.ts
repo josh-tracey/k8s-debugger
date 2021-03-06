@@ -1,8 +1,6 @@
 import * as inquirer from 'inquirer'
 import RootStore from './store'
 import LogStreamer from './operations/logStreamer'
-import DeployConfig from './operations/deployConfig'
-import DumpConfig from './operations/dumpConfig'
 import DisplaySecrets from './operations/displaySecrets'
 import { isOperation } from './helpers/index'
 import DeletePods from './operations/deletePods'
@@ -42,12 +40,7 @@ export const mainMenu = async () => {
   )
   const options = [
     ...(experimentalEnabled
-      ? [
-          new inquirer.Separator('--Experimental--'),
-          LiveReload,
-          DeployConfig,
-          DumpConfig,
-        ]
+      ? [new inquirer.Separator('--Experimental--'), LiveReload]
       : []),
     new inquirer.Separator('--Logging--'),
     LogMerger,
