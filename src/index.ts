@@ -7,7 +7,7 @@ import NamespaceSwitcher from './operations/namespaceSwitcher'
 const run = async () => {
   console.clear()
   await ContextSwitcher.execute()
-  await NamespaceSwitcher.execute()
+  await NamespaceSwitcher.execute(true)
   await mainMenu()
 }
 

@@ -3,10 +3,10 @@ import { selector } from '../helpers/prompts'
 import { IOperation } from './interface'
 
 const NamespaceSwitcher: IOperation = {
-  execute: async () => {
+  execute: async (clear?: boolean) => {
     const answer = await selector('namespaces', 'autocomplete')
     RootStore.setNamespace(answer.selection as string)
-    console.clear()
+    clear && console.clear()
   },
   label: 'Change Namespace',
 }

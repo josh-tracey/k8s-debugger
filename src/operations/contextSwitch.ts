@@ -29,7 +29,7 @@ const getTargetContext = async () => {
 
 const ContextSwitcher: IOperation = {
   label: 'Change Context',
-  execute: async () => {
+  execute: async (clear?: boolean) => {
     const context = await getTargetContext()
 
     if (context.name.includes('prod')) {
@@ -46,7 +46,7 @@ const ContextSwitcher: IOperation = {
     } else {
       RootStore.setContext(context.name)
     }
-    console.clear()
+    clear && console.clear()
   },
 }
 

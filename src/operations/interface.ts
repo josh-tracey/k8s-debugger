@@ -1,4 +1,4 @@
 export interface IOperation {
   label: string
-  execute: () => void | Promise<void> | never
+  execute: (...args: any[]) => void | Promise<void> | never
 }
