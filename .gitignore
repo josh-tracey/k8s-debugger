@@ -3,3 +3,5 @@ build
 node_modules
 output
 secrets
+local
+k8configs

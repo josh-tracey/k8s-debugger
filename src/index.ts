@@ -1,15 +1,16 @@
 #!node
-import { mainMenu, contextSwitcher } from './questions'
+import 'reflect-metadata'
+import { createConnection } from 'typeorm'
+import { mainMenu } from './mainMenu'
 // import { showPodDetails } from './api/k8s/resources'
+import ContextSwitcher from './operations/contextSwitch'
+import NamespaceSwitcher from './operations/namespaceSwitcher'
 
 const run = async () => {
   console.clear()
-  await contextSwitcher()
+  await ContextSwitcher.execute()
+  await NamespaceSwitcher.execute()
   await mainMenu()
 }
 
-run()
-
-// showPodDetails('default', 'core-kernel-5ff4566b67-8tkkf').then((pod) =>
-//   console.log(JSON.stringify(pod, null, " "))
-// )
+createConnection().then(run)

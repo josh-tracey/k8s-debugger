@@ -1,13 +1,10 @@
 import * as k8s from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import * as shelljs from 'shelljs'
+import { K8S_DEBUGGER_ISOLATED_CONTEXT } from '../../config'
 import RootStore from '../../store/index'
 
 export const kc = new k8s.KubeConfig()
-
-const ISOLATED_CONTEXT_SELECTION = Boolean(
-  process.env['K8S_DEBUGGER_ISOLATED_CONTEXT']
-)
 
 kc.loadFromDefault()
 
@@ -43,7 +40,7 @@ export const getContexts = () =>
 
 export const setContext = (context: string) => {
   kc.setCurrentContext(context)
-  !ISOLATED_CONTEXT_SELECTION &&
+  !K8S_DEBUGGER_ISOLATED_CONTEXT &&
     shelljs.exec(`kubectl config use-context ${context}`)
   RootStore.setNamespace('default')
   reinitApis()

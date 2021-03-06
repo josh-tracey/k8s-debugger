@@ -177,22 +177,64 @@ export const streamLog = async (
 ) => {
   const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
-  const container = pod.body.spec?.containers[0]
-  k8sLogs.log(
-    namespace,
-    podName,
-    container?.name || '',
-    writer,
-    (err: any) => {
-      console.log(err)
-    },
-    { follow: true, sinceSeconds: 60, timestamps: true }
-  )
+  pod.body.spec?.containers.forEach((container) => {
+    k8sLogs.log(
+      namespace,
+      podName,
+      container?.name || '',
+      writer,
+      (err: any) => {
+        console.log(err)
+      },
+      { follow: true, sinceSeconds: 60, timestamps: true }
+    )
+  })
 }
 
 export const showPodDetails = async (namespace: string, name: string) => {
   const pod = await k8sCore.readNamespacedPod(name, namespace)
   return pod.body
+}
+
+export const configMapExists = async (name: string, namespace: string) => {
+  const configMaps = await k8sCore.listNamespacedConfigMap(namespace)
+  return !!configMaps.body.items.find(
+    (configmap) => configmap.metadata?.name === name
+  )
+}
+
+export const createConfigmap = async (
+  name: string,
+  namespace: string,
+  data: { [name: string]: string }
+) => {
+  await k8sCore.createNamespacedConfigMap(namespace, {
+    data,
+    metadata: { name },
+  })
+}
+
+export const updateConfigmap = async (
+  name: string,
+  namespace: string,
+  data: { [name: string]: string }
+) => {
+  await k8sCore.patchNamespacedConfigMap(
+    name,
+    namespace,
+    {
+      data: data,
+    },
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    {
+      headers: {
+        'content-type': 'application/merge-patch+json',
+      },
+    }
+  )
 }
 
 export const deleteResource = (

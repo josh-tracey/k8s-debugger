@@ -9,27 +9,36 @@
     "build": "rm -rf ./build && yarn tsc",
     "start": "node ./build/index.js",
     "go": "yarn build && yarn start",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "migration:create": "./node_modules/typeorm/cli.js migration:create -n",
+    "migration:generate": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:generate -n",
+    "migration:run": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:run",
+    "migration:revert": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:revert"
   },
   "bin": {
     "k8s-debugger": "./build/index.js"
   },
   "dependencies": {
-    "@kubernetes/client-node": "^0.12.3",
+    "@kubernetes/client-node": "^0.13.0",
     "columnify": "^1.5.4",
     "inquirer": "^7.3.3",
     "inquirer-autocomplete-prompt": "^1.3.0",
     "inquirer-checkbox-plus": "^1.0.2",
     "mobx": "^5.15.4",
     "mobx-state-tree": "^3.17.2",
+    "reflect-metadata": "^0.1.13",
     "shelljs": "^0.8.4",
-    "stream-combiner": "^0.2.2"
+    "sqlite3": "^5.0.0",
+    "stream-combiner": "^0.2.2",
+    "ts-node": "^9.1.1",
+    "typeorm": "^0.2.29"
   },
   "devDependencies": {
     "@types/columnify": "^1.5.0",
     "@types/inquirer": "^7.3.1",
     "@types/node": "^14.14.6",
     "@types/shelljs": "^0.8.8",
+    "@types/sqlite3": "^3.1.6",
     "typescript": "^4.0.5"
   }
 }

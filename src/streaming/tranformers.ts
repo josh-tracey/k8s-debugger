@@ -8,14 +8,14 @@ export class LogTagger extends Transform {
     this.podName = podName
   }
   public _transform = (chunk: Buffer, _: any, next: any) => {
-    next(null, `${this.podName}:::${chunk.toLocaleString()}`)
+    next(null, `${this.podName}|:::|${chunk.toLocaleString()}`)
   }
 }
 
 export class LogGrouper extends Transform {
   private prevPodName: string | null = null
   public _transform = (chunk: Buffer, _: any, next: any) => {
-    const [podname, log] = chunk.toLocaleString().split(':::')
+    const [podname, log] = chunk.toLocaleString().split('|:::|')
 
     let message: string | null = null
 
@@ -27,8 +27,22 @@ export class LogGrouper extends Transform {
     }
     if (message) {
       next(null, message)
-    } else {
-      next('Recieved null message')
     }
   }
 }
+
+export class Tranformer extends Transform {
+  private scanFunction: (chunk: Buffer) => void
+  constructor(func: (chunk: Buffer) => void) {
+    super()
+    this.scanFunction = func
+  }
+  public _transform = (chunk: Buffer, _: any, next: any) => {
+    this.scanFunction(chunk)
+    next(null)
+  }
+}
+
+export const printer = new Tranformer((chunk) => {
+  console.log(chunk.toLocaleString())
+})
