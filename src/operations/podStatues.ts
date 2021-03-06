@@ -3,6 +3,8 @@ import RootStore from '../store'
 import * as columnify from 'columnify'
 import { IOperation } from './interface'
 
+
+//TODO Needs to be updated, not too great, doesn't reflect the current state correctly.
 const PodStatuses: IOperation = {
   execute: async () => {
     const data: any[] = []

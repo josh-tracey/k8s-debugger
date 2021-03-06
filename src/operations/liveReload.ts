@@ -5,6 +5,8 @@ import { refreshPeriod, gracePeriod } from '../config'
 import { selector } from '../helpers/prompts'
 import { IOperation } from './interface'
 
+
+// TODO:  Needs rewriting currenlty broken. 
 const LiveReload: IOperation = {
   execute: async () => {
     const question = await selector('deployments', 'autocomplete')
