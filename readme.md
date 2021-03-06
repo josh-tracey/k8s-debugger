@@ -6,7 +6,7 @@ Console debug tool for kubernetes
 
 ## Features
 
-### Stable Features
+### Current Features
 
 - Bulk deletion of resources
 - Merged logs of multi pods
