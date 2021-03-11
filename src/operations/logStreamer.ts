@@ -1,5 +1,4 @@
 import api from '../api'
-import { mainMenu } from '../mainMenu'
 import RootStore from '../store'
 import { stdout } from 'process'
 import { LogGrouper, LogTagger } from '../streaming/tranformers'
@@ -34,7 +33,6 @@ const LogStreamer: IOperation = {
 
     } else {
       console.clear()
-      mainMenu()
     }
 
   },
