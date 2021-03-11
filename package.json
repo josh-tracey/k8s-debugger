@@ -9,11 +9,7 @@
     "build": "rm -rf ./build && yarn tsc",
     "start": "node ./build/index.js",
     "go": "yarn build && yarn start",
-    "prepublishOnly": "yarn build",
-    "migration:create": "./node_modules/typeorm/cli.js migration:create -n",
-    "migration:generate": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:generate -n",
-    "migration:run": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:run",
-    "migration:revert": "yarn build && ts-node ./node_modules/typeorm/cli.js migration:revert"
+    "prepublishOnly": "yarn build"
   },
   "bin": {
     "k8s-debugger": "./build/index.js"
