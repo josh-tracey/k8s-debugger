@@ -22,9 +22,9 @@ export let k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
 export let k8sEvents = kc.makeApiClient(k8s.EventsV1Api)
 
-export const k8sExec = new k8s.Exec(kc)
+export let k8sExec = new k8s.Exec(kc)
 
-export const getCurrentContext = () => kc.getCurrentContext()
+export let getCurrentContext = () => kc.getCurrentContext()
 
 const reinitApis = () => {
   k8sLogs = new k8s.Log(kc)
@@ -33,6 +33,8 @@ const reinitApis = () => {
   k8sCustomApi = kc.makeApiClient(k8s.ApiextensionsV1Api)
   k8sCore = kc.makeApiClient(k8s.CoreV1Api)
   k8sApps = kc.makeApiClient(k8s.AppsV1Api)
+  k8sEvents = kc.makeApiClient(k8s.EventsV1Api)
+  k8sExec = new k8s.Exec(kc)
 }
 
 export const getContexts = () =>
