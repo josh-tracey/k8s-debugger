@@ -10,6 +10,36 @@ export const getCurrentNamespace = () => {
   return namespace || 'default'
 }
 
+export const sleep = require('util').promisify(setTimeout)
+
+export const waitForPodReady = (
+  name: string,
+  namespace: string,
+  options?: {
+    interval?: number
+    onReady?: (name: string, namespace: string) => void
+  }
+) => {
+  return new Promise<void>(async (done, error) => {
+    let podReady = false
+    while (!podReady) {
+      const podStatus = (await k8sCore.readNamespacedPodStatus(name, namespace))
+        .body
+      if (['Ready', 'Running'].includes(podStatus.status?.phase!)) {
+        podReady = true
+      } else if (
+        ['Completed', 'Failed', 'Terminating'].includes(
+          podStatus.status?.phase!
+        )
+      ) {
+        error('Pods in failed/completed state.')
+      }
+      sleep(options?.interval || 2000)
+    }
+    done()
+  })
+}
+
 export const getNamespaces = async () => {
   try {
     return k8sCore.listNamespace()

@@ -2,6 +2,7 @@ import { IOperation } from './interface'
 import RootStore from '../store'
 import { k8sEvents } from '../api/k8s/index'
 import { FgBlue, FgGreen, Reset } from '../colors'
+import * as columnify from 'columnify'
 
 const Events: IOperation = {
   execute: async () => {
@@ -14,13 +15,26 @@ const Events: IOperation = {
       return
     }
 
-    res.items.map((e) => {
-      console.log(
-        `${FgBlue}${new Date(
-          e.metadata!.creationTimestamp!
-        ).toISOString()} - ${FgGreen}${e.regarding?.name}: ${Reset}${e.note}`
+    console.log(
+      columnify(
+        res.items
+          .map((e) => {
+            return {
+              Timestamp: `${FgBlue}${new Date(
+                e.metadata!.creationTimestamp!
+              ).toISOString()}`,
+              Resource: `${FgGreen}${e.regarding?.name}`,
+              Event: `${Reset}${e.note}`,
+            }
+          })
+          .sort((a, b) => (a.Timestamp <= b.Timestamp ? -1 : 1)),
+        {
+          config: {
+            Event: { maxWidth: 96 },
+          },
+        }
       )
-    })
+    )
   },
   label: 'Display Events',
 }

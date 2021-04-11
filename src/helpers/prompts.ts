@@ -1,6 +1,6 @@
 import * as inquirer from 'inquirer'
 import RootStore from '../store'
-import { ResourceType } from '../types'
+import { ResourceType, ResourceTypeMap } from '../types'
 import { Selection } from '../mainMenu'
 import { defaultPageSize } from '../config'
 import api from '../api'
@@ -20,17 +20,20 @@ export const prodConfirm = async () => {
   })
 }
 
-export const selector = async (
-  resourceType: ResourceType,
+export const selector = async <
+  T extends ResourceTypeMap,
+  P extends keyof ResourceTypeMap
+>(
+  resourceType: P,
   type: 'checkbox-plus' | 'autocomplete'
 ): Promise<{ selection: string[] | string }> => {
   const response = (
     await mapResource[resourceType].api(RootStore.currentNamespace)
   ).body
 
-  const resources = response.items.map((item: any) => ({
-    name: item.metadata.name,
-    value: item.metadata.name,
+  const resources = response.items.map((item: T[P]) => ({
+    name: item.metadata?.name,
+    value: item.metadata?.name,
   }))
 
   return inquirer.prompt([
@@ -46,7 +49,9 @@ export const selector = async (
         input = input || ''
 
         return new Promise(function (resolve) {
-          let data = resources.filter((item: any) => item.name.includes(input))
+          let data = resources.filter((item: { name: string; value: string }) =>
+            item.name.includes(input)
+          )
 
           resolve(data)
         })

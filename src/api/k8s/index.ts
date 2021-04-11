@@ -22,6 +22,7 @@ export let k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
 export let k8sEvents = kc.makeApiClient(k8s.EventsV1Api)
 
+export const k8sExec = new k8s.Exec(kc)
 
 export const getCurrentContext = () => kc.getCurrentContext()
 
