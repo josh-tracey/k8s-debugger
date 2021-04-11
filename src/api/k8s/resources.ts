@@ -1,8 +1,8 @@
 import { k8sCore, k8sApps } from '.'
-import { ResourceType } from '../../types'
 import { colorStatus, findState } from '../../helpers'
 import { k8sLogs, k8sBatchV1, k8sBatchV2 } from './index'
 import { Transform } from 'stream'
+import { ResourceType } from '../../types'
 
 export let namespace: string | undefined = 'default'
 

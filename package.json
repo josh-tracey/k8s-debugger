@@ -5,6 +5,7 @@
   "main": "./build/index.js",
   "author": "Joshua Tracey <joshua.tracey08@gmail.com>",
   "license": "MIT",
+  "types": "types",
   "scripts": {
     "build": "rm -rf ./build && yarn tsc",
     "start": "node ./build/index.js",

@@ -1,4 +1,3 @@
-#!node
 import { mainMenu } from './mainMenu'
 import ContextSwitcher from './operations/contextSwitch'
 import NamespaceSwitcher from './operations/namespaceSwitcher'
@@ -11,4 +10,3 @@ const run = async () => {
 }
 
 run()
-
