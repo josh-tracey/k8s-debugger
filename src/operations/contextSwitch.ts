@@ -41,10 +41,10 @@ const ContextSwitcher: IOperation = {
       })
 
       if (['y', 'Y', 'Yes', 'yes'].includes(answer.confirm)) {
-        RootStore.setContext(context.name)
+        await RootStore.setContext(context.name)
       }
     } else {
-      RootStore.setContext(context.name)
+      await RootStore.setContext(context.name)
     }
     clear && console.clear()
   },

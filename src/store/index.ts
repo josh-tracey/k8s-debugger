@@ -18,7 +18,7 @@ const RootModel = types
       self.currentNamespace = namespace
     },
     setContext: flow(function* (context: string) {
-      api.setContext(context)
+      yield api.setContext(context)
       if (api.getCurrentContext() === context) {
         self.currentContext = context
       } else {
