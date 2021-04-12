@@ -64,7 +64,7 @@ const DebugShell: IOperation = {
 
     console.clear()
 
-    console.log('Cleaning up debug container\n\n')
+    console.log(`Deleteing Pod k8s-debugger`)
     await deleteResource('pods', RootStore.currentNamespace, 'k8s-debugger')
   },
   label: 'Debug Container Shell',
