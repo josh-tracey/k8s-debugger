@@ -42,6 +42,8 @@ const ContextSwitcher: IOperation = {
 
       if (['y', 'Y', 'Yes', 'yes'].includes(answer.confirm)) {
         await RootStore.setContext(context.name)
+      } else {
+        await ContextSwitcher.execute()
       }
     } else {
       await RootStore.setContext(context.name)

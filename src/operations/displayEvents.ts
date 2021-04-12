@@ -27,7 +27,9 @@ const Events: IOperation = {
               Event: `${Reset}${e.note}`,
             }
           })
-          .sort((a, b) => (a.Timestamp <= b.Timestamp ? -1 : 1)),
+          .sort((a, b) =>
+            a.Timestamp === b.Timestamp ? 0 : a.Timestamp < b.Timestamp ? -1 : 1
+          ),
         {
           config: {
             Event: { maxWidth: 96 },

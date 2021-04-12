@@ -8,6 +8,8 @@ export const kc = new k8s.KubeConfig()
 
 kc.loadFromDefault()
 
+type EventApi = k8s.EventsV1Api | k8s.EventsV1beta1Api
+
 export let k8sLogs = new k8s.Log(kc)
 
 export let k8sExec = new k8s.Exec(kc)
@@ -22,11 +24,7 @@ export let k8sCore = kc.makeApiClient(k8s.CoreV1Api)
 
 export let k8sApps = kc.makeApiClient(k8s.AppsV1Api)
 
-export let k8sEvents: k8s.EventsV1Api | k8s.EventsV1beta1Api = kc.makeApiClient(
-  k8s.EventsV1Api
-)
-
-// k8s.topNodes(k8sCore).then((obj) => console.log(JSON.stringify(obj[0].Node.status?.nodeInfo?.kubeletVersion, null, ' ')))
+export let k8sEvents: EventApi = kc.makeApiClient(k8s.EventsV1Api)
 
 export let getCurrentContext = () => kc.getCurrentContext()
 
