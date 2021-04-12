@@ -46,7 +46,7 @@ const DebugShell: IOperation = {
       await k8sCore.createNamespacedPod(RootStore.currentNamespace, {
         metadata: { name: 'k8s-debugger' },
         spec: {
-          "ephemeralContainers": [],
+          ephemeralContainers: [],
           containers: [
             {
               name: 'debug-container',
@@ -67,7 +67,7 @@ const DebugShell: IOperation = {
     console.log('Cleaning up debug container\n\n')
     await deleteResource('pods', RootStore.currentNamespace, 'k8s-debugger')
   },
-  label: 'Debug Shell',
+  label: 'Debug Container Shell',
 }
 
 export default DebugShell

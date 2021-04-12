@@ -40,7 +40,7 @@ const LogStreamer: IOperation = {
       process.stdin.setRawMode(true)
       process.stdin.resume()
       process.stdin.on('keypress', (_, key) => {
-        if (key && key.name === 'escape') {
+        if (key?.name === 'escape' || key?.name === 'q') {
           streams.forEach((s: any) => s.abort())
         }
       })
