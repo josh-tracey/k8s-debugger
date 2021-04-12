@@ -22,12 +22,12 @@ Console debug tool for kubernetes
 - Resource Status Reports
 - Ingress Resource Support
 - Live Reloading
-
+s
 ### Phase 1 Release Roadmap
 
 - Debug Shell
-- SQL Executor
 - Events Display
+- General bug fixes and usability fixes
 
 ## Installation
 
