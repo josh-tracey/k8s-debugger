@@ -39,12 +39,12 @@ const LogStreamer: IOperation = {
 
       process.stdin.setRawMode(true)
       process.stdin.resume()
-      process.stdin.on('keypress', (ch, key) => {
+      process.stdin.on('keypress', (_, key) => {
         if (key && key.name === 'escape') {
           streams.forEach((s: any) => s.abort())
         }
       })
-      
+
       await Promise.all(
         tagStreams.map(async (tagStream) => {
           tagStream.pipe(LogGrouping)
