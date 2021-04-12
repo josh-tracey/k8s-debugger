@@ -5,6 +5,7 @@ import api from '../api'
 import { searchInqurerItemArray } from '../mainMenu'
 import * as querystring from 'querystring'
 import { IOperation } from './interface'
+import NamespaceSwitcher from './namespaceSwitcher'
 
 const getTargetContext = async () => {
   const environments = api.getContexts()
@@ -42,11 +43,13 @@ const ContextSwitcher: IOperation = {
 
       if (['y', 'Y', 'Yes', 'yes'].includes(answer.confirm)) {
         await RootStore.setContext(context.name)
+        await NamespaceSwitcher.execute(true)
       } else {
         await ContextSwitcher.execute()
       }
     } else {
       await RootStore.setContext(context.name)
+      await NamespaceSwitcher.execute(true)
     }
     clear && console.clear()
   },
