@@ -207,18 +207,21 @@ export const streamLog = async (
 ) => {
   const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
-  pod.body.spec?.containers.forEach((container) => {
-    k8sLogs.log(
-      namespace,
-      podName,
-      container?.name || '',
-      writer,
-      (err: any) => {
-        console.log(err)
-      },
-      { follow: true, sinceSeconds: 60, timestamps: true }
-    )
-  })
+  const streams = await Promise.all(
+    pod.body.spec?.containers.map(async (container) => {
+      return k8sLogs.log(
+        namespace,
+        podName,
+        container?.name || '',
+        writer,
+        (err: any) => {
+          console.log(err)
+        },
+        { follow: true, sinceSeconds: 60, timestamps: true }
+      )
+    }) || []
+  )
+  return streams
 }
 
 export const showPodDetails = async (namespace: string, name: string) => {
