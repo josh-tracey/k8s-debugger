@@ -45,7 +45,7 @@ const reinitApis = async () => {
   } else {
     k8sEvents = kc.makeApiClient(k8s.EventsV1beta1Api)
   }
-
+  
   k8sExec = new k8s.Exec(kc)
 }
 
