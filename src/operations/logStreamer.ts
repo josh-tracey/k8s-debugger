@@ -29,19 +29,18 @@ const LogStreamer: IOperation = {
 
           streams.forEach((stream: any) =>
             stream.on('complete', () => {
-              streams.forEach((s: any) => s.abort())
+              streams.map(async (s: any) => s.abort())
             })
           )
 
           return LogTagging
         })
       )
-
       process.stdin.setRawMode(true)
       process.stdin.resume()
       process.stdin.on('keypress', (_, key) => {
         if (key?.name === 'escape' || key?.name === 'q') {
-          streams.forEach((s: any) => s.abort())
+          streams.forEach(async (s: any) => s.abort())
         }
       })
 

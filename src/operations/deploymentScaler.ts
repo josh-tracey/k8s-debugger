@@ -17,13 +17,13 @@ const Scaler: IOperation = {
       .then(async (answer: { scale: number }) => {
         await Promise.all(
           deployments.map(async (deployment: string) => {
-            await setScaleDeployment(
+            const res = await setScaleDeployment(
               deployment,
               RootStore.currentNamespace,
               answer.scale
             )
             console.log(`Scaled ${deployment} to ${answer.scale} pods`)
-            return
+            return res
           })
         )
       })
