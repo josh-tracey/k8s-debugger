@@ -14,15 +14,20 @@ Console debug tool for kubernetes
 - Easy Context and namespace selection
 - Pod Status View
 
-### Planned Features 
+### Planned Features
 
 - Creation / editing of cron jobs
 - Manual Cron job execution
 - Retrieve details on cron jobs
-- Redis Event Listening for critical logs
 - Resource Status Reports
 - Ingress Resource Support
 - Live Reloading
+s
+### Phase 1 Release Roadmap
+
+- Debug Shell
+- Events Display
+- General bug fixes and usability fixes
 
 ## Installation
 
@@ -32,7 +37,7 @@ yarn global add @adriftdev/k8s-debugger
 
 ## Usage
 
-Simply run 
+Simply run
 
 ```
 k8s-debugger

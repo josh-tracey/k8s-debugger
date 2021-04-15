@@ -1,13 +1,43 @@
 import { k8sCore, k8sApps } from '.'
-import { ResourceType } from '../../types'
 import { colorStatus, findState } from '../../helpers'
 import { k8sLogs, k8sBatchV1, k8sBatchV2 } from './index'
 import { Transform } from 'stream'
+import { ResourceType } from '../../types'
 
 export let namespace: string | undefined = 'default'
 
 export const getCurrentNamespace = () => {
   return namespace || 'default'
+}
+
+export const sleep = require('util').promisify(setTimeout)
+
+export const waitForPodReady = (
+  name: string,
+  namespace: string,
+  options?: {
+    interval?: number
+    onReady?: (name: string, namespace: string) => void
+  }
+) => {
+  return new Promise<void>(async (done, error) => {
+    let podReady = false
+    while (!podReady) {
+      const podStatus = (await k8sCore.readNamespacedPodStatus(name, namespace))
+        .body
+      if (['Ready', 'Running'].includes(podStatus.status?.phase!)) {
+        podReady = true
+      } else if (
+        ['Completed', 'Failed', 'Terminating'].includes(
+          podStatus.status?.phase!
+        )
+      ) {
+        error('Pods in failed/completed state.')
+      }
+      sleep(options?.interval || 2000)
+    }
+    done()
+  })
 }
 
 export const getNamespaces = async () => {
@@ -177,18 +207,21 @@ export const streamLog = async (
 ) => {
   const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
-  pod.body.spec?.containers.forEach((container) => {
-    k8sLogs.log(
-      namespace,
-      podName,
-      container?.name || '',
-      writer,
-      (err: any) => {
-        console.log(err)
-      },
-      { follow: true, sinceSeconds: 60, timestamps: true }
-    )
-  })
+  const streams = await Promise.all(
+    pod.body.spec?.containers.map(async (container) => {
+      return k8sLogs.log(
+        namespace,
+        podName,
+        container?.name || '',
+        writer,
+        (err: any) => {
+          console.log(err)
+        },
+        { follow: true, sinceSeconds: 60, timestamps: true }
+      )
+    }) || []
+  )
+  return streams
 }
 
 export const showPodDetails = async (namespace: string, name: string) => {

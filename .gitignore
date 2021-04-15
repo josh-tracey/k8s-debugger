@@ -4,4 +4,5 @@ node_modules
 output
 secrets
 local
+sql
 k8configs

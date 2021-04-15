@@ -18,21 +18,29 @@ const RootModel = types
       self.currentNamespace = namespace
     },
     setContext: flow(function* (context: string) {
-      api.setContext(context)
+      yield api.setContext(context)
       if (api.getCurrentContext() === context) {
         self.currentContext = context
       } else {
         throw new Error('Failed to set context')
       }
     }),
-    addLog: (log: ILog) => {self.currentLogs.push(log)},
+    addLog: (log: ILog) => {
+      self.currentLogs.push(log)
+    },
     clearLogs: () => {
       self.currentLogs.clear()
     },
     sortLogs: () => {
-      const logs = self.currentLogs.slice().sort(
-        (a: ILog, b: ILog) => a.timestamp.getTime() - b.timestamp.getTime()
-      )
+      const logs = self.currentLogs
+        .slice()
+        .sort((a: ILog, b: ILog) =>
+          a.timestamp.getTime() === b.timestamp.getTime()
+            ? 0
+            : a.timestamp.getTime() < b.timestamp.getTime()
+            ? -1
+            : 1
+        )
       self.currentLogs.replace(logs)
     },
   }))
