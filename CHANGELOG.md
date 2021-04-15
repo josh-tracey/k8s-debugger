@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Todo
+### [1.1.0] - 2021-04-16
+
+### Added
+
+- Debug Container Shell
+- Display Events
+
+### Changed
+
+- Improve Log streaming experience, use raw input and listen for 'q' and 'escape' to exit streaming screen.
+- Fix Sorting of logs Log merger
+
+### Remove
+- Experimental feature Live Reloading 
+
+### [1.0.0]
 
 - Config loading, with multiple file specified in environment needs fixing.
 - Context switching needs proper error handling.
