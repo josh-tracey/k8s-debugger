@@ -1,5 +1,7 @@
 # k8s-debugger
 
+[![BCH compliance](https://bettercodehub.com/edge/badge/josh-tracey/k8s-debugger?branch=master)](https://bettercodehub.com/)
+
 Console debug tool for kubernetes
 
 #
