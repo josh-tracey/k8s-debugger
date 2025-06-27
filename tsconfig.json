@@ -2,25 +2,25 @@
   "compilerOptions": {
     "outDir": "build",
     "module": "commonjs",
-    "target": "es2017",
-    "lib": ["es6", "es2017", "es2021"],
+    "target": "es6",
+    "jsx": "react-jsx",
+    "lib": ["es6", "es2017"],
     "sourceMap": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "Node",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
-    "strict": false,
+    "strict": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": true,
-    "strictPropertyInitialization": false,
-    "skipLibCheck": true
+    "strictPropertyInitialization": false
   },
   "include": [
-    "src"
+    "src" 
 ],
   "exclude": ["node_modules", "build"]
 }

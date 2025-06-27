@@ -1,7 +1,7 @@
 import { IOperation } from './interface'
 import * as fs from 'fs'
 import { env } from 'process'
-import * as inquirer from 'inquirer'
+import inquirer = require('inquirer')
 
 const sql_dir = env.SQL_DIR || 'sql'
 
