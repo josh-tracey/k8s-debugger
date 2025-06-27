@@ -1,13 +1,13 @@
 import api from '../api'
 import RootStore from '../store'
-import * as columnify from 'columnify'
+import columnify from 'columnify'
 import { IOperation } from './interface'
 import { colorStatus } from '../helpers'
 
 //TODO Needs to be updated, not too great, doesn't reflect the current state correctly.
 const PodStatuses: IOperation = {
   execute: async () => {
-    const data = (await api.getPods(RootStore.currentNamespace)).body.items
+    const data = (await api.getPods(RootStore.currentNamespace)).items
       .map((pod) => ({
         Name: pod.metadata?.name,
         Status: colorStatus(pod.status?.phase),

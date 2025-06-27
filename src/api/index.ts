@@ -14,7 +14,6 @@ import {
   getServices,
   setScaleDeployment,
   setNamespace,
-  getCronJobs,
   getJobs,
 } from './k8s/resources'
 import { getContexts, getCurrentContext, setContext } from './k8s'
@@ -40,6 +39,5 @@ export default {
   setNamespace,
   setScaleDeployment,
   streamLog,
-  getCronJobs,
   getJobs,
 }

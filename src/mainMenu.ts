@@ -1,4 +1,4 @@
-import * as inquirer from 'inquirer'
+import inquirer from 'inquirer'
 import RootStore from './store'
 import LogStreamer from './operations/logStreamer'
 import DisplaySecrets from './operations/displaySecrets'
@@ -76,11 +76,11 @@ export const mainMenu = async () => {
     ),
     // @ts-ignore
     type: 'autocomplete',
-    source: function (_: any, input: string) {
+    source: function(_: any, input: string) {
       input = (input || '').toLocaleLowerCase()
 
       if (input) {
-        return new Promise(function (resolve) {
+        return new Promise(function(resolve) {
           let data = options.filter(
             (item: any) =>
               isOperation(item) &&

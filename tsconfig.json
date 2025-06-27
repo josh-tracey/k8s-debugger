@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "build",
-    "module": "commonjs",
+    "module": "nodenext",
     "target": "es2017",
     "lib": ["es6", "es2017", "es2021"],
     "sourceMap": true,
@@ -9,10 +9,10 @@
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strict": false,
-    "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
+    "strict": false,                      /* Enable all strict type-checking options. */
+    "noEmitOnError": true,               /* Do not emit outputs if any errors were reported. */
+    "esModuleInterop": true,             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,

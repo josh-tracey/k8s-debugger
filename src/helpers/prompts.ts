@@ -29,7 +29,7 @@ export const selector = async <
 ): Promise<{ selection: string[] | string }> => {
   const response = (
     await mapResource[resourceType].api(RootStore.currentNamespace)
-  ).body
+  )
 
   const resources = response.items.map((item: T[P]) => ({
     name: item.metadata?.name,
@@ -45,10 +45,10 @@ export const selector = async <
       choices: resources.map((item: { name: string; value: string }) => {
         return item.name || ''
       }),
-      source: function (_: any, input: string) {
+      source: function(_: any, input: string) {
         input = input || ''
 
-        return new Promise(function (resolve) {
+        return new Promise(function(resolve) {
           let data = resources.filter((item: { name: string; value: string }) =>
             item.name.includes(input)
           )
