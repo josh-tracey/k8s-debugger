@@ -1,6 +1,6 @@
 import { k8sCore, k8sApps } from '.'
 import { colorStatus, findState } from '../../helpers'
-import { k8sLogs, k8sBatchV1 } from './index'
+import { k8sLogs, k8sBatchV1, k8sBatchV2 } from './index'
 import { Transform } from 'stream'
 import { ResourceType } from '../../types'
 
@@ -23,7 +23,8 @@ export const waitForPodReady = (
   return new Promise<void>(async (done, error) => {
     let podReady = false
     while (!podReady) {
-      const podStatus = (await k8sCore.readNamespacedPodStatus({ name, namespace }))
+      const podStatus = (await k8sCore.readNamespacedPodStatus(name, namespace))
+        .body
       if (['Ready', 'Running'].includes(podStatus.status?.phase!)) {
         podReady = true
       } else if (
@@ -54,7 +55,7 @@ export const setNamespace = async (nextNamespace: string) => {
 
 export const getServices = async (namespace: string) => {
   try {
-    return k8sCore.listNamespacedService({ namespace })
+    return k8sCore.listNamespacedService(namespace)
   } catch (e) {
     console.log(e.message)
     return
@@ -62,11 +63,11 @@ export const getServices = async (namespace: string) => {
 }
 
 export const getPods = (namespace: string) => {
-  return k8sCore.listNamespacedPod({ namespace })
+  return k8sCore.listNamespacedPod(namespace)
 }
 
 export const getDeployments = async (namespace: string) => {
-  return k8sApps.listNamespacedDeployment({ namespace })
+  return k8sApps.listNamespacedDeployment(namespace)
 }
 
 export const setScaleDeployment = async (
@@ -76,11 +77,9 @@ export const setScaleDeployment = async (
 ) => {
   try {
     return await k8sApps
-      .replaceNamespacedDeploymentScale({
-        name, namespace, body: {
-          spec: { replicas },
-          metadata: { name, namespace },
-        }
+      .replaceNamespacedDeploymentScale(name, namespace, {
+        spec: { replicas },
+        metadata: { name, namespace },
       })
       .then((response) => response)
       .catch((error) => {
@@ -95,7 +94,7 @@ export const setScaleDeployment = async (
 
 export const getDeploymentDetails = async (name: string, namespace: string) => {
   try {
-    return (await k8sApps.readNamespacedDeployment({ name, namespace }))
+    return (await k8sApps.readNamespacedDeployment(name, namespace)).body
   } catch (e) {
     console.log(e.message)
     return
@@ -112,31 +111,35 @@ export const getAllDeployments = () => {
 }
 
 export const getSecrets = (namespace: string) => {
-  return k8sCore.listNamespacedSecret({ namespace })
+  return k8sCore.listNamespacedSecret(namespace)
 }
 
 export const getConfigMaps = (namespace: string) => {
-  return k8sCore.listNamespacedConfigMap({ namespace })
+  return k8sCore.listNamespacedConfigMap(namespace)
 }
 
 export const getServiceAccounts = (namespace: string) => {
-  return k8sCore.listNamespacedServiceAccount({ namespace })
+  return k8sCore.listNamespacedServiceAccount(namespace)
 }
 
 export const getJobs = (namespace: string) => {
-  return k8sBatchV1.listNamespacedJob({ namespace })
+  return k8sBatchV1.listNamespacedJob(namespace)
+}
+
+export const getCronJobs = (namespace: string) => {
+  return k8sBatchV2.listNamespacedCronJob(namespace)
 }
 
 export const getSecret = async (name: string, namespace: string) => {
-  return (await k8sCore.readNamespacedSecret({ name, namespace }))
+  return (await k8sCore.readNamespacedSecret(name, namespace)).body
 }
 
 export const getConfigmap = async (name: string, namespace: string) => {
-  return (await k8sCore.readNamespacedConfigMap({ name, namespace }))
+  return (await k8sCore.readNamespacedConfigMap(name, namespace)).body
 }
 
 export const getPodStatus = async (pod: string, namespace: string) => {
-  const podStatus = (await k8sCore.readNamespacedPodStatus({ name: pod, namespace }))
+  const podStatus = (await k8sCore.readNamespacedPodStatus(pod, namespace)).body
 
   return {
     podName: pod,
@@ -152,7 +155,8 @@ export const getPodStatus = async (pod: string, namespace: string) => {
 }
 
 export const getServiceProxy = async (service: string, namespace: string) => {
-  return (await k8sCore.connectGetNamespacedServiceProxy({ name: service, namespace }))
+  return (await k8sCore.connectGetNamespacedServiceProxy(service, namespace))
+    .body
 }
 
 export const getPodLogs = async (pod: string, namespace: string) => {
@@ -160,8 +164,20 @@ export const getPodLogs = async (pod: string, namespace: string) => {
   const logTimestampGTCRegex = /(\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}\.\d{1,12}[A-Z]) (.*)/gu
   try {
     const logs = (
-      await k8sCore.readNamespacedPodLog({ name: pod, namespace, timestamps: true })
-    )
+      await k8sCore.readNamespacedPodLog(
+        pod,
+        namespace,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true
+      )
+    ).body
 
     const matchs = logs.match(/(.*)/gu)
 
@@ -189,10 +205,10 @@ export const streamLog = async (
   namespace: string,
   writer: Transform
 ) => {
-  const pod = await k8sCore.readNamespacedPod({ name: podName, namespace })
+  const pod = await k8sCore.readNamespacedPod(podName, namespace)
 
   const streams = await Promise.all(
-    pod.spec?.containers.map(async (container) => {
+    pod.body.spec?.containers.map(async (container) => {
       return k8sLogs.log(
         namespace,
         podName,
@@ -209,13 +225,13 @@ export const streamLog = async (
 }
 
 export const showPodDetails = async (namespace: string, name: string) => {
-  const pod = await k8sCore.readNamespacedPod({ name, namespace })
-  return pod
+  const pod = await k8sCore.readNamespacedPod(name, namespace)
+  return pod.body
 }
 
 export const configMapExists = async (name: string, namespace: string) => {
-  const configMaps = await k8sCore.listNamespacedConfigMap({ namespace })
-  return !!configMaps.items.find(
+  const configMaps = await k8sCore.listNamespacedConfigMap(namespace)
+  return !!configMaps.body.items.find(
     (configmap) => configmap.metadata?.name === name
   )
 }
@@ -225,11 +241,9 @@ export const createConfigmap = async (
   namespace: string,
   data: { [name: string]: string }
 ) => {
-  await k8sCore.createNamespacedConfigMap({
-    namespace, body: {
-      data,
-      metadata: { name },
-    }
+  await k8sCore.createNamespacedConfigMap(namespace, {
+    data,
+    metadata: { name },
   })
 }
 
@@ -238,7 +252,22 @@ export const updateConfigmap = async (
   namespace: string,
   data: { [name: string]: string }
 ) => {
-  await k8sCore.patchNamespacedConfigMap({ name, namespace, body: { data, headers: { 'content-type': 'application/merge-patch+json' } } })
+  await k8sCore.patchNamespacedConfigMap(
+    name,
+    namespace,
+    {
+      data: data,
+    },
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    {
+      headers: {
+        'content-type': 'application/merge-patch+json',
+      },
+    }
+  )
 }
 
 export const deleteResource = (
@@ -247,19 +276,19 @@ export const deleteResource = (
   name: string
 ) => {
   if (resourceType === 'pods') {
-    return k8sCore.deleteNamespacedPod({ name, namespace })
+    return k8sCore.deleteNamespacedPod(name, namespace)
   } else if (resourceType === 'deployments') {
-    return k8sApps.deleteNamespacedDeployment({ name, namespace })
+    return k8sApps.deleteNamespacedDeployment(name, namespace)
   } else if (resourceType === 'daemonsets') {
-    return k8sApps.deleteNamespacedDaemonSet({ name, namespace })
+    return k8sApps.deleteNamespacedDaemonSet(name, namespace)
   } else if (resourceType === 'services') {
-    return k8sCore.deleteNamespacedService({ name, namespace })
+    return k8sCore.deleteNamespacedService(name, namespace)
   } else if (resourceType === 'secrets') {
-    return k8sCore.deleteNamespacedSecret({ name, namespace })
+    return k8sCore.deleteNamespacedSecret(name, namespace)
   } else if (resourceType === 'configMaps') {
-    return k8sCore.deleteNamespacedConfigMap({ name, namespace })
+    return k8sCore.deleteNamespacedConfigMap(name, namespace)
   } else if (resourceType === 'serviceAccounts') {
-    return k8sCore.deleteNamespacedServiceAccount({ name, namespace })
+    return k8sCore.deleteNamespacedServiceAccount(name, namespace)
   }
   return
 }

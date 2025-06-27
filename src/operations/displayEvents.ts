@@ -2,13 +2,13 @@ import { IOperation } from './interface'
 import RootStore from '../store'
 import { k8sEvents } from '../api/k8s/index'
 import { FgBlue, FgGreen, Reset } from '../colors'
-import columnify from 'columnify'
+import * as columnify from 'columnify'
 
 const Events: IOperation = {
   execute: async () => {
     const res = (
-      await k8sEvents.listNamespacedEvent({ namespace: RootStore.currentNamespace })
-    )
+      await k8sEvents.listNamespacedEvent(RootStore.currentNamespace)
+    ).body
 
     if (!res.items.length) {
       console.log(`No recent events happened in ${RootStore.currentNamespace}`)

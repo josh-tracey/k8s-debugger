@@ -1,6 +1,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import { IOperation } from '../operations/interface'
+import Separator from 'inquirer/lib/objects/separator'
 import api from '../api'
 import {
   V1ConfigMap,
@@ -11,8 +12,8 @@ import {
   V1Secret,
   V1Service,
   V1ServiceAccount,
+  V2alpha1CronJob,
 } from '@kubernetes/client-node'
-import Separator from 'inquirer/lib/objects/separator'
 
 export const configDirectoryExists = () =>
   fs.existsSync(path.join(process.cwd(), 'k8configs'))
@@ -34,4 +35,5 @@ export const mapResource: ResourceMap = {
   serviceAccounts: { api: api.getServiceAccounts, type: V1ServiceAccount },
   services: { api: api.getServices, type: V1Service },
   jobs: { api: api.getJobs, type: V1Job },
+  cronJobs: { api: api.getCronJobs, type: V2alpha1CronJob },
 }

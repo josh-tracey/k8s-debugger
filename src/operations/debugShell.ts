@@ -42,21 +42,19 @@ const DebugShell: IOperation = {
   execute: async () => {
     const pods = await api.getPods(RootStore.currentNamespace)
 
-    if (!pods.items.some((pod) => pod.metadata?.name === 'k8s-debugger')) {
-      await k8sCore.createNamespacedPod({
-        namespace: RootStore.currentNamespace, body: {
-          metadata: { name: 'k8s-debugger' },
-          spec: {
-            ephemeralContainers: [],
-            containers: [
-              {
-                name: 'debug-container',
-                image: 'amouat/network-utils',
-                command: ['sleep', '3600'],
-              },
-            ],
-          },
-        }
+    if (!pods.body.items.some((pod) => pod.metadata?.name === 'k8s-debugger')) {
+      await k8sCore.createNamespacedPod(RootStore.currentNamespace, {
+        metadata: { name: 'k8s-debugger' },
+        spec: {
+          ephemeralContainers: [],
+          containers: [
+            {
+              name: 'debug-container',
+              image: 'amouat/network-utils',
+              command: ['sleep', '3600'],
+            },
+          ],
+        },
       })
     }
 
