@@ -1,15 +1,15 @@
 {
   "name": "@adriftdev/k8s-debugger",
-  "version": "1.2.1",
+  "version": "1.7.1",
   "description": "Kubernetes Debugger",
   "main": "./build/index.js",
   "author": "Joshua Tracey <joshua.tracey08@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf ./build && yarn tsc",
+    "build": "rm -rf ./build && pnpm tsc",
     "start": "node ./build/index.js",
-    "go": "yarn build && yarn start",
-    "prepublishOnly": "yarn build"
+    "go": "pnpm build && pnpm start",
+    "prepublishOnly": "pnpm build"
   },
   "bin": {
     "k8s-debugger": "./build/index.js"
@@ -31,5 +31,6 @@
     "@types/node": "^14.14.37",
     "@types/shelljs": "^0.8.8",
     "typescript": "^4.2.4"
-  }
+  },
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab"
 }
