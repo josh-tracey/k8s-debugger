@@ -1,11 +1,8 @@
-___
+**⚠️ This repository is no longer maintained.**
 
-## NOT MAINTAINED ANY MORE
-For a new tool with some of the best features from this ported to it have a look at the below repo.
+A new and actively developed tool, `sailr`, incorporates some of the best features from this project. You are encouraged to check it out:
 
-https://github.com/Adriftdev/sailr
-
----
+[https://github.com/Adriftdev/sailr](https://github.com/Adriftdev/sailr)
 
 # k8s-debugger
 
