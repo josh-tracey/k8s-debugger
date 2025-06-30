@@ -1,6 +1,13 @@
-# k8s-debugger
+___
 
-[![BCH compliance](https://bettercodehub.com/edge/badge/josh-tracey/k8s-debugger?branch=master)](https://bettercodehub.com/)
+## NOT MAINTAINED ANY MORE
+For a new tool with some of the best features from this ported to it have a look at plus many more
+
+https://github.com/Adriftdev/sailr
+
+---
+
+# k8s-debugger
 
 Console debug tool for kubernetes
 
