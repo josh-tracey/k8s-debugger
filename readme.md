@@ -1,7 +1,7 @@
 ___
 
 ## NOT MAINTAINED ANY MORE
-For a new tool with some of the best features from this ported to it have a look at plus many more
+For a new tool with some of the best features from this ported to it have a look at the below repo.
 
 https://github.com/Adriftdev/sailr
 
